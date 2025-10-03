@@ -1,4 +1,4 @@
-# 🏠 Neighbour Help Web App
+# Neighbour Help Web App
 
 A community-focused platform that connects residents living in the same building.  
 Users can request help from neighbours, share updates, and make announcements related to their housing community.  
@@ -26,7 +26,7 @@ _Example view of the announcement area._
 - **Back-end:** Next.js API routes, Prisma ORM  
 - **Database:** PostgreSQL  
 
-## 🚀 Installation & Setup
+## Installation & Setup
 
 1. **Clone the repository**
    ```bash
