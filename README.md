@@ -1,65 +1,65 @@
-# Neighbour Help Web App
+# Neighbour App
 
-A community-focused platform that connects residents living in the same building.  
-Users can request help from neighbours, share updates, and make announcements related to their housing community.  
-Built as a full-stack application, it showcases modern web development, client–server communication, and database integration.
+A small notice board for people who live in the same building. The idea came from
+the paper notice board in our stairwell, which nobody ever reads: someone needs help
+carrying a sofa, someone found a bike key, the water is going off on Thursday. This
+is that board, except it fits in your pocket.
 
-## Features
+## Status
 
-- **Help Requests** – Ask neighbours for assistance quickly and easily.  
-- **Announcements** – Share important information with all residents.  
-- **Community Updates** – Post and follow news within your building.  
-- **Secure Access** – Intended for residents only.  
-- **Responsive UI** – Works seamlessly on desktop and mobile devices.
+Work in progress. The front end is up and running, but everything is still built on
+placeholder data.
 
-## Screenshots
+Working right now:
 
-**Front Page**  
-_Example view of the app’s homepage._
+- Front page with the latest notices, open help requests and building info
+- Notice board page at `/feed`
+- Light and dark mode, toggled from the sidebar
 
-**Announcement Section**  
-_Example view of the announcement area._
+Not done yet:
 
-## Tech Stack
+- No database. All notices live in `src/lib/notices.ts` as a plain array.
+- The "New Notice" and "Comment" buttons do not do anything yet.
+- No login, so there is nothing keeping non-residents out.
 
-- **Front-end:** TypeScript, Next.js, React, Tailwind CSS  
-- **Back-end:** Next.js API routes, Prisma ORM  
-- **Database:** PostgreSQL  
+## Tech
 
-## Installation & Setup
+Next.js 15 with the App Router, React 19, TypeScript and Tailwind CSS v4. Icons are
+from lucide-react. Colours come from CSS variables in `src/globals.css`, so dark mode
+is just a class on `<html>`.
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/neighbour-help-app.git
-   cd neighbour-help-app
-   ```
+Prisma and PostgreSQL are the plan for the data layer, but neither is installed yet.
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+## Running it
 
-3. **Set up environment variables**  
-   Create a `.env` file in the project root:
-   ```env
-   DATABASE_URL=postgresql://user:password@localhost:5432/dbname
-   NEXT_PUBLIC_API_KEY=your_api_key
-   ```
+```bash
+git clone https://github.com/makinenvilma/naapuri-app.git
+cd naapuri-app
+npm install
+npm run dev
+```
 
-4. **Run database migrations**
-   ```bash
-   npx prisma migrate dev
-   ```
+Then open http://localhost:3000. No environment variables needed at this point,
+since there is no database to connect to.
 
-5. **Run the application**
-   ```bash
-   npm run dev
-   ```
-   The app will be available at `http://localhost:3000`
+## Layout of the code
 
-## How It Works
+```
+src/
+  app/
+    layout.tsx      sidebar + main content wrapper
+    page.tsx        front page
+    feed/page.tsx   notice board
+  components/
+    Navbar.tsx      sidebar, holds the dark mode toggle
+  lib/
+    notices.ts      the placeholder notices, shared by both pages
+  globals.css       theme variables for light and dark
+```
 
-- **Next.js** serves both front-end pages and back-end API routes.  
-- **Prisma** manages database queries and migrations for PostgreSQL.  
-- **Vercel** hosts the application with automatic deployments.  
-- **Tailwind CSS** ensures a modern, responsive interface.
+## Next up
+
+1. Prisma schema and a real PostgreSQL database
+2. A form that actually posts a notice
+3. Comments
+4. Some kind of login so the board stays between neighbours
