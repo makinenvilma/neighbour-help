@@ -1,9 +1,7 @@
 # Neighbour App
 
-A small notice board for people who live in the same building. The idea came from
-the paper notice board in our stairwell, which nobody ever reads: someone needs help
-carrying a sofa, someone found a bike key, the water is going off on Thursday. This
-is that board, except it fits in your pocket.
+A notice board for people who live in the same building. Residents can post
+announcements, ask neighbours for help, and report lost and found items.
 
 ## Status
 
@@ -20,7 +18,7 @@ Not done yet:
 
 - No database. All notices live in `src/lib/notices.ts` as a plain array.
 - The "New Notice" and "Comment" buttons do not do anything yet.
-- No login, so there is nothing keeping non-residents out.
+- No authentication, so the board is not restricted to residents.
 
 ## Tech
 
@@ -60,6 +58,6 @@ src/
 ## Next up
 
 1. Prisma schema and a real PostgreSQL database
-2. A form that actually posts a notice
+2. A form for posting a notice
 3. Comments
-4. Some kind of login so the board stays between neighbours
+4. Authentication, so the board is restricted to residents
