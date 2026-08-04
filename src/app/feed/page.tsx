@@ -1,22 +1,7 @@
+import { formatNoticeDate, notices } from "@/lib/notices";
+
 export default function FeedPage() {
-  const posts = [
-    {
-      id: 1,
-      title: "Neighbour Evening Announcement",
-      content:
-        "You are welcome to the neighbour evening next Saturday at 6 PM in the housing association's club room!",
-      author: "Mary Example",
-      createdAt: "2025-04-24",
-    },
-    {
-      id: 2,
-      title: "Lost & Found: Bicycle Key",
-      content:
-        "A bicycle key was found in the bike storage. You can pick it up from under the notice board in staircase A.",
-      author: "Peter Example",
-      createdAt: "2025-04-23",
-    },
-  ];
+  const posts = notices;
 
   return (
     <div className="max-w-5xl mx-auto p-6">
@@ -38,12 +23,7 @@ export default function FeedPage() {
           >
             <h2 className="text-2xl font-bold mb-2 text-gray-900">{post.title}</h2>
             <p className="text-gray-500 text-sm mb-3">
-              {new Date(post.createdAt).toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}{" "}
-              — {post.author}
+              {formatNoticeDate(post.createdAt)} - {post.author}
             </p>
             <p className="text-gray-700 leading-relaxed mb-3">{post.content}</p>
 
