@@ -12,12 +12,15 @@ Working right now:
 
 - Front page with the latest notices, open help requests and building info
 - Notice board page at `/feed`
+- New notice form at `/new`, with validation
 - Light and dark mode, toggled from the sidebar
 
 Not done yet:
 
 - No database. All notices live in `src/lib/notices.ts` as a plain array.
-- The "New Notice" and "Comment" buttons do not do anything yet.
+- The new notice form validates but cannot save - submitting a valid notice
+  says so instead of posting it.
+- The "Comment" buttons do not do anything yet.
 - No authentication, so the board is not restricted to residents.
 
 ## Tech
@@ -48,16 +51,16 @@ src/
     layout.tsx      sidebar + main content wrapper
     page.tsx        front page
     feed/page.tsx   notice board
+    new/page.tsx    form for posting a notice
   components/
     Navbar.tsx      sidebar, holds the dark mode toggle
   lib/
-    notices.ts      the placeholder notices, shared by both pages
+    notices.ts      the placeholder notices, shared by the pages
   globals.css       theme variables for light and dark
 ```
 
 ## Next up
 
-1. Prisma schema and a real PostgreSQL database
-2. A form for posting a notice
-3. Comments
-4. Authentication, so the board is restricted to residents
+1. Prisma schema and a real PostgreSQL database, so `/new` can actually save
+2. Comments
+3. Authentication, so the board is restricted to residents

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { MessageCircle, Plus } from "lucide-react";
 import {
   categoryLabels,
@@ -22,9 +23,12 @@ export default function FeedPage() {
           Everything the neighbours have posted, newest first.
         </p>
         <div className="mt-6">
-          <button className="inline-flex items-center gap-2 rounded-full bg-card px-5 py-2.5 font-medium text-card-foreground transition-transform duration-200 hover:scale-105">
+          <Link
+            href="/new"
+            className="inline-flex items-center gap-2 rounded-full bg-card px-5 py-2.5 font-medium text-card-foreground transition-transform duration-200 hover:scale-105"
+          >
             <Plus className="h-4 w-4" /> New notice
-          </button>
+          </Link>
         </div>
       </section>
 
