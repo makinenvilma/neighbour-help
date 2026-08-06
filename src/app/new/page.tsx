@@ -35,7 +35,7 @@ export default function NewNoticePage() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-10">
+    <div className="mx-auto max-w-5xl space-y-10">
       <section className="rounded-lg bg-gradient-to-br from-primary to-accent p-8 text-primary-foreground sm:p-10">
         <Link
           href="/feed"
