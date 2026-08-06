@@ -3,7 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Info } from "lucide-react";
-import { categoryLabels, type NoticeCategory } from "@/lib/notices";
+import {
+  categoryLabels,
+  categoryStyles,
+  type NoticeCategory,
+} from "@/lib/notices";
 
 const categories = Object.keys(categoryLabels) as NoticeCategory[];
 
@@ -52,7 +56,8 @@ export default function NewNoticePage() {
         </p>
       </section>
 
-      <section className="rounded-lg border border-border bg-card p-6">
+      <div className="grid gap-6 lg:grid-cols-3">
+      <section className="rounded-lg border border-border bg-card p-6 lg:col-span-2">
         <form onSubmit={handleSubmit} noValidate className="space-y-6">
           <div>
             <label htmlFor="title" className="text-sm font-medium text-card-foreground">
@@ -155,6 +160,37 @@ export default function NewNoticePage() {
           </div>
         </form>
       </section>
+
+      <div>
+        <section className="rounded-lg border border-border bg-card p-6 lg:sticky lg:top-6">
+          <h2 className="text-lg font-bold">Preview</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            How it will look on the board.
+          </p>
+
+          <article className="mt-4 rounded-lg border border-border bg-background p-4">
+            <span
+              className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${categoryStyles[category]}`}
+            >
+              {categoryLabels[category]}
+            </span>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Today - {author.trim() || "Your name"}
+            </p>
+            <h3
+              className={`mt-2 break-words text-lg font-bold ${
+                title.trim() ? "text-card-foreground" : "text-muted-foreground"
+              }`}
+            >
+              {title.trim() || "Your title shows up here"}
+            </h3>
+            <p className="mt-2 whitespace-pre-wrap break-words leading-relaxed text-muted-foreground">
+              {content.trim() || "And the text of your notice goes here."}
+            </p>
+          </article>
+        </section>
+      </div>
+      </div>
     </div>
   );
 }
