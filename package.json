@@ -1,5 +1,5 @@
 {
-  "name": "naapuri",
+  "name": "neighbour-help",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -38,10 +38,10 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/makinenvilma/naapuri-app.git"
+    "url": "git+https://github.com/makinenvilma/neighbour-help.git"
   },
   "bugs": {
-    "url": "https://github.com/makinenvilma/naapuri-app/issues"
+    "url": "https://github.com/makinenvilma/neighbour-help/issues"
   },
-  "homepage": "https://github.com/makinenvilma/naapuri-app#readme"
+  "homepage": "https://github.com/makinenvilma/neighbour-help#readme"
 }

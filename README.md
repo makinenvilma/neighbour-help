@@ -1,4 +1,4 @@
-# Neighbour App
+# Neighbour Help
 
 A notice board for people who live in the same building. Residents can post
 announcements, ask neighbours for help, and report lost and found items.
@@ -31,8 +31,8 @@ Prisma and PostgreSQL are the plan for the data layer, but neither is installed 
 ## Running it
 
 ```bash
-git clone https://github.com/makinenvilma/naapuri-app.git
-cd naapuri-app
+git clone https://github.com/makinenvilma/neighbour-help.git
+cd neighbour-help
 npm install
 npm run dev
 ```
