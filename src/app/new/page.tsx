@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Info } from "lucide-react";
+import { ArrowLeft, ChevronDown, Info } from "lucide-react";
 import {
   categoryLabels,
   categoryStyles,
@@ -14,8 +14,11 @@ const categories = Object.keys(categoryLabels) as NoticeCategory[];
 type FieldName = "title" | "author" | "content";
 type Errors = Partial<Record<FieldName, string>>;
 
-const inputClasses =
-  "mt-2 w-full rounded-lg border border-input bg-background px-4 py-2.5 text-foreground outline-none transition-colors duration-200 focus:border-ring";
+const fieldBase =
+  "w-full rounded-lg border border-input bg-background px-4 py-2.5 text-foreground outline-none transition-colors duration-200 focus:border-ring";
+const inputClasses = `mt-2 ${fieldBase} leading-6`;
+const selectClasses = `${fieldBase} appearance-none pr-10 leading-6`;
+const textareaClasses = `mt-2 ${fieldBase} resize-y leading-relaxed`;
 
 export default function NewNoticePage() {
   const [title, setTitle] = useState("");
@@ -96,18 +99,21 @@ export default function NewNoticePage() {
               <label htmlFor="category" className="text-sm font-medium text-card-foreground">
                 Category
               </label>
-              <select
-                id="category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value as NoticeCategory)}
-                className={inputClasses}
-              >
-                {categories.map((key) => (
-                  <option key={key} value={key}>
-                    {categoryLabels[key]}
-                  </option>
-                ))}
-              </select>
+              <div className="relative mt-2">
+                <select
+                  id="category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as NoticeCategory)}
+                  className={selectClasses}
+                >
+                  {categories.map((key) => (
+                    <option key={key} value={key}>
+                      {categoryLabels[key]}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              </div>
             </div>
           </div>
 
@@ -121,7 +127,7 @@ export default function NewNoticePage() {
               onChange={(e) => setContent(e.target.value)}
               rows={6}
               placeholder="Putting up shelves this weekend and would rather borrow than buy."
-              className={`${inputClasses} resize-y leading-relaxed`}
+              className={textareaClasses}
             />
             {errors.content && (
               <p className="mt-1 text-sm text-destructive">{errors.content}</p>
