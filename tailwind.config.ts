@@ -30,6 +30,15 @@ const config: Config = {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
+        "badge-announcement": "hsl(var(--badge-announcement))",
+        "badge-announcement-foreground":
+          "hsl(var(--badge-announcement-foreground))",
+        "badge-help": "hsl(var(--badge-help))",
+        "badge-help-foreground": "hsl(var(--badge-help-foreground))",
+        "badge-event": "hsl(var(--badge-event))",
+        "badge-event-foreground": "hsl(var(--badge-event-foreground))",
+        "badge-neutral": "hsl(var(--badge-neutral))",
+        "badge-neutral-foreground": "hsl(var(--badge-neutral-foreground))",
       },
       borderRadius: {
         lg: "var(--radius)",

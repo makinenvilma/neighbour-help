@@ -17,10 +17,10 @@ export const categoryLabels: Record<NoticeCategory, string> = {
 };
 
 export const categoryStyles: Record<NoticeCategory, string> = {
-  announcement: "bg-primary/10 text-primary",
-  help: "bg-accent/10 text-accent",
-  event: "bg-secondary/20 text-secondary-foreground",
-  "lost-found": "bg-muted text-muted-foreground",
+  announcement: "bg-badge-announcement text-badge-announcement-foreground",
+  help: "bg-badge-help text-badge-help-foreground",
+  event: "bg-badge-event text-badge-event-foreground",
+  "lost-found": "bg-badge-neutral text-badge-neutral-foreground",
 };
 
 // Placeholder data until the Prisma/PostgreSQL layer is in place.
