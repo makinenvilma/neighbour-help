@@ -33,35 +33,6 @@
     --radius: 0.75rem;
   }
 
-  .dark {
-    --background: 215 20% 12%;
-    --foreground: 0 0% 98%;
-    --card: 215 20% 18%;
-    --card-foreground: 0 0% 98%;
-    --popover: 215 20% 18%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 200 90% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 40 95% 55%;
-    --secondary-foreground: 215 25% 15%;
-    --accent: 280 80% 60%;
-    --accent-foreground: 0 0% 100%;
-    --muted: 215 15% 25%;
-    --muted-foreground: 215 15% 75%;
-    --destructive: 0 72% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --badge-announcement: 200 65% 25%;
-    --badge-announcement-foreground: 200 90% 80%;
-    --badge-help: 280 45% 30%;
-    --badge-help-foreground: 280 85% 85%;
-    --badge-event: 40 55% 25%;
-    --badge-event-foreground: 40 95% 75%;
-    --badge-neutral: 215 15% 32%;
-    --badge-neutral-foreground: 215 15% 85%;
-    --border: 215 15% 25%;
-    --input: 215 15% 25%;
-    --ring: 200 90% 50%;
-  }
 }
 
 @layer base {

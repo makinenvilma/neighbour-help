@@ -24,11 +24,16 @@ export default async function NewNoticePage({
         >
           <ArrowLeft className="h-4 w-4" /> Back to the board
         </Link>
-        <h1 className="mt-3 text-3xl font-extrabold sm:text-4xl">
+        {/* Same eyebrow as the other pages: without a top bar on mobile, this
+            is what says which community you are posting into. */}
+        <p className="mt-3 text-sm font-medium uppercase tracking-wide opacity-80">
+          {community.name}
+        </p>
+        <h1 className="mt-2 text-3xl font-extrabold sm:text-4xl">
           Post a notice
         </h1>
         <p className="mt-3 max-w-xl opacity-90">
-          Ask for a hand, share what is happening, or let {community.name} know
+          Ask for a hand, share what is happening, or let the community know
           about something you found.
         </p>
       </section>

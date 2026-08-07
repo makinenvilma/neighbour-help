@@ -23,7 +23,7 @@ Working right now:
 - Reads and writes are scoped to one community; an unknown slug is a 404
 - Community name, member count and the "Good to know" rows come from the
   database, so every community renders its own
-- Light and dark mode, toggled from the sidebar
+- Responsive shell: a sidebar from 768px up, bottom tabs below it
 
 Not done yet:
 
@@ -37,8 +37,8 @@ Not done yet:
 ## Tech
 
 Next.js 15 with the App Router, React 19, TypeScript and Tailwind CSS v4. Icons are
-from lucide-react. Colours come from CSS variables in `src/globals.css`, so dark mode
-is just a class on `<html>`.
+from lucide-react. Colours come from CSS variables in `src/globals.css`. There is no
+dark mode - the palette is light only.
 
 The data layer is Prisma 7 on PostgreSQL. Prisma 7 generates its client into
 `src/generated/prisma` (gitignored) and connects through the `@prisma/adapter-pg`
@@ -136,14 +136,17 @@ src/
       new/NewNoticeForm.tsx the form itself, a client component
       new/actions.ts       createNotice server action
   components/
-    Navbar.tsx             sidebar, links scoped to the current community
+    AppShell.tsx           sidebar + main column, picks the nav for the width
+    Sidebar.tsx            desktop sidebar, hidden below md
+    BottomTabs.tsx         mobile tab bar, hidden from md up
+    NavLinks.tsx           the sidebar's links
   lib/
     db.ts                  Prisma client singleton
     community.ts           community lookups
     queries.ts             read queries, all scoped by communityId
     notices.ts             category labels, badge styles, date formatting
   generated/prisma         generated Prisma client (gitignored)
-  globals.css              theme variables for light and dark
+  globals.css              colour variables
 ```
 
 ## Next up

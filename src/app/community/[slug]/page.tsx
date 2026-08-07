@@ -175,6 +175,16 @@ export default async function CommunityHome({
               })}
             </ul>
           </section>
+
+          {/* Switching community is rare, so on mobile it sits at the foot of
+              the page rather than in the tab bar. The sidebar covers it on
+              desktop, hence md:hidden. */}
+          <Link
+            href="/"
+            className="flex items-center gap-2 rounded-lg border border-border bg-card p-4 font-medium hover:bg-muted md:hidden"
+          >
+            <Users className="h-5 w-5" /> All communities
+          </Link>
         </div>
       </div>
     </div>
