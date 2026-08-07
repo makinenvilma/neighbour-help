@@ -8,6 +8,7 @@ export type NoticeField = "title" | "author" | "content" | "category";
 export type NoticeFieldErrors = Partial<Record<NoticeField, string>>;
 
 export type NewNoticeInput = {
+  buildingSlug: string;
   title: string;
   author: string;
   content: string;
@@ -39,8 +40,29 @@ export async function createNotice(
     return { ok: false, errors };
   }
 
+  // Take a slug and resolve it here rather than accepting a buildingId from the
+  // client: a raw foreign key off the wire is a request to write into any
+  // building at all.
+  //
+  // This confirms the building exists, not that the poster is allowed to post
+  // in it. That check belongs here too, and lands with authentication.
+  const building = await prisma.building.findUnique({
+    where: { slug: input.buildingSlug },
+    select: { id: true },
+  });
+
+  if (!building) {
+    throw new Error(`No building with slug "${input.buildingSlug}".`);
+  }
+
   const notice = await prisma.notice.create({
-    data: { title, author, content, category: input.category },
+    data: {
+      buildingId: building.id,
+      title,
+      author,
+      content,
+      category: input.category,
+    },
   });
 
   revalidatePath("/");

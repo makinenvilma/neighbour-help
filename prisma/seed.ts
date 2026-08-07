@@ -6,8 +6,20 @@ const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
 });
 
-// The notices that used to live in src/lib/notices.ts as placeholder data.
-const notices = [
+const BUILDING = {
+  slug: "maple-street-12",
+  name: "Maple Street 12",
+  residentCount: 24,
+};
+
+const INFO_ITEMS = [
+  { icon: "shirt", label: "Laundry room", value: "Book in the hallway, 2 h slots", sortOrder: 0 },
+  { icon: "flame", label: "Sauna", value: "Wednesdays 5-9 PM", sortOrder: 1 },
+  { icon: "trash", label: "Recycling", value: "Cardboard & bio emptied Mondays", sortOrder: 2 },
+  { icon: "phone", label: "Caretaker", value: "040 123 4567, weekdays 8-16", sortOrder: 3 },
+];
+
+const NOTICES = [
   {
     title: "Neighbour Evening Announcement",
     content:
@@ -51,15 +63,39 @@ const notices = [
 ] as const;
 
 async function main() {
+  // The add_building migration already creates this building so it can backfill
+  // the notices that predate multi-tenancy. Upsert so the seed also works on a
+  // database where that row is missing.
+  const building = await prisma.building.upsert({
+    where: { slug: BUILDING.slug },
+    update: {},
+    create: BUILDING,
+  });
+
+  const infoCount = await prisma.buildingInfo.count({
+    where: { buildingId: building.id },
+  });
+  if (infoCount === 0) {
+    await prisma.buildingInfo.createMany({
+      data: INFO_ITEMS.map((item) => ({ ...item, buildingId: building.id })),
+    });
+  }
+
   // Non-destructive: a board that already has notices is left alone.
-  const existing = await prisma.notice.count();
+  const existing = await prisma.notice.count({
+    where: { buildingId: building.id },
+  });
   if (existing > 0) {
-    console.log(`Skipping seed, the board already has ${existing} notices.`);
+    console.log(
+      `Skipping notices, ${building.name} already has ${existing} of them.`,
+    );
     return;
   }
 
-  await prisma.notice.createMany({ data: [...notices] });
-  console.log(`Seeded ${notices.length} notices.`);
+  await prisma.notice.createMany({
+    data: NOTICES.map((notice) => ({ ...notice, buildingId: building.id })),
+  });
+  console.log(`Seeded ${NOTICES.length} notices for ${building.name}.`);
 }
 
 main()

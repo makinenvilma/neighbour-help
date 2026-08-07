@@ -4,11 +4,13 @@ import {
   CalendarDays,
   Flame,
   HeartHandshake,
+  Info,
   Megaphone,
   Phone,
   Shirt,
   Trash2,
   Users,
+  type LucideIcon,
 } from "lucide-react";
 import {
   categoryLabels,
@@ -16,18 +18,20 @@ import {
   formatNoticeDate,
 } from "@/lib/notices";
 import { getNotices } from "@/lib/queries";
+import { getCurrentBuilding } from "@/lib/building";
 
-const RESIDENTS = 24;
-
-const buildingInfo = [
-  { icon: Shirt, label: "Laundry room", value: "Book in the hallway, 2 h slots" },
-  { icon: Flame, label: "Sauna", value: "Wednesdays 5-9 PM" },
-  { icon: Trash2, label: "Recycling", value: "Cardboard & bio emptied Mondays" },
-  { icon: Phone, label: "Caretaker", value: "040 123 4567, weekdays 8-16" },
-];
+// BuildingInfo.icon is a key, not a component name - buildings pick from this
+// set rather than naming anything the bundle has to resolve at runtime.
+const infoIcons: Record<string, LucideIcon> = {
+  shirt: Shirt,
+  flame: Flame,
+  trash: Trash2,
+  phone: Phone,
+};
 
 export default async function Home() {
-  const notices = await getNotices();
+  const building = await getCurrentBuilding();
+  const notices = await getNotices(building.id);
   const latest = notices.slice(0, 3);
   const helpRequests = notices.filter((n) => n.category === "help");
   const events = notices.filter((n) => n.category === "event");
@@ -36,14 +40,14 @@ export default async function Home() {
     { icon: Megaphone, value: notices.length, label: "Active notices" },
     { icon: HeartHandshake, value: helpRequests.length, label: "Help requests" },
     { icon: CalendarDays, value: events.length, label: "Upcoming events" },
-    { icon: Users, value: RESIDENTS, label: "Neighbours" },
+    { icon: Users, value: building.residentCount, label: "Neighbours" },
   ];
 
   return (
     <div className="mx-auto max-w-5xl space-y-10">
       <section className="rounded-lg bg-gradient-to-br from-primary to-accent p-8 text-primary-foreground sm:p-10">
         <p className="text-sm font-medium uppercase tracking-wide opacity-80">
-          Maple Street 12
+          {building.name}
         </p>
         <h1 className="mt-2 text-3xl font-extrabold sm:text-4xl">
           Your neighbourhood notice board
@@ -143,15 +147,22 @@ export default async function Home() {
           <section className="rounded-lg border border-border bg-card p-6">
             <h2 className="text-lg font-bold">Good to know</h2>
             <ul className="mt-4 space-y-4">
-              {buildingInfo.map((item) => (
-                <li key={item.label} className="flex gap-3">
-                  <item.icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                  <div>
-                    <p className="font-medium text-card-foreground">{item.label}</p>
-                    <p className="text-sm text-muted-foreground">{item.value}</p>
-                  </div>
-                </li>
-              ))}
+              {building.infoItems.map((item) => {
+                const ItemIcon = infoIcons[item.icon] ?? Info;
+                return (
+                  <li key={item.id} className="flex gap-3">
+                    <ItemIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                    <div>
+                      <p className="font-medium text-card-foreground">
+                        {item.label}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {item.value}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </section>
         </div>

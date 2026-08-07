@@ -6,15 +6,17 @@ import {
   formatNoticeDate,
 } from "@/lib/notices";
 import { getNotices } from "@/lib/queries";
+import { getCurrentBuilding } from "@/lib/building";
 
 export default async function FeedPage() {
-  const posts = await getNotices();
+  const building = await getCurrentBuilding();
+  const posts = await getNotices(building.id);
 
   return (
     <div className="mx-auto max-w-5xl space-y-10">
       <section className="rounded-lg bg-gradient-to-br from-primary to-accent p-8 text-primary-foreground sm:p-10">
         <p className="text-sm font-medium uppercase tracking-wide opacity-80">
-          Maple Street 12
+          {building.name}
         </p>
         <h1 className="mt-2 text-3xl font-extrabold sm:text-4xl">
           Neighbourhood notice board
