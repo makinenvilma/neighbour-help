@@ -1,4 +1,4 @@
-# Neighbour Help
+# Koto
 
 A notice board for communities. Members can post announcements, ask each other
 for help, and report lost and found items.
@@ -81,7 +81,7 @@ You need PostgreSQL running locally. On macOS:
 ```bash
 brew install postgresql@18
 brew services start postgresql@18
-createdb neighbour_help
+createdb koto
 ```
 
 Then:
@@ -102,7 +102,7 @@ Then open http://localhost:3000 and pick a community.
 password and a superuser named after your macOS account, so it looks like:
 
 ```
-DATABASE_URL="postgresql://<your-username>@localhost:5432/neighbour_help?schema=public"
+DATABASE_URL="postgresql://<your-username>@localhost:5432/koto?schema=public"
 ```
 
 Useful commands:

@@ -33,7 +33,7 @@ export default function Navbar() {
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-56 bg-card border-r border-border flex flex-col">
-      <div className="p-6 text-lg font-bold">Neighbour Help</div>
+      <div className="p-6 text-lg font-bold">Koto</div>
       <nav className="flex-1 px-4 space-y-2">
         <Link href="/" className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted">
           <UsersRound className="h-5 w-5" /> Communities
