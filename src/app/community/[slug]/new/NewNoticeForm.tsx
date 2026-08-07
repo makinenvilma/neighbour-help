@@ -22,9 +22,9 @@ const selectClasses = `${fieldBase} appearance-none pr-10 leading-6`;
 const textareaClasses = `mt-2 ${fieldBase} resize-y leading-relaxed`;
 
 export default function NewNoticeForm({
-  buildingSlug,
+  communitySlug,
 }: {
-  buildingSlug: string;
+  communitySlug: string;
 }) {
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
@@ -41,7 +41,7 @@ export default function NewNoticeForm({
 
     const found: Errors = {};
     if (!title.trim()) found.title = "Give the notice a title.";
-    if (!author.trim()) found.author = "Tell your neighbours who is posting.";
+    if (!author.trim()) found.author = "Tell the community who is posting.";
     if (content.trim().length < 10)
       found.content = "Write at least a sentence so people know what you mean.";
 
@@ -51,7 +51,7 @@ export default function NewNoticeForm({
     startTransition(async () => {
       try {
         const result = await createNotice({
-          buildingSlug,
+          communitySlug,
           title,
           author,
           content,
@@ -61,7 +61,7 @@ export default function NewNoticeForm({
           setErrors(result.errors);
           return;
         }
-        router.push("/feed");
+        router.push(`/community/${communitySlug}/feed`);
       } catch {
         setFailure(
           "The notice could not be saved. Check that the database is running and try again.",
@@ -170,7 +170,7 @@ export default function NewNoticeForm({
               {pending ? "Posting..." : "Post notice"}
             </button>
             <Link
-              href="/feed"
+              href={`/community/${communitySlug}/feed`}
               className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-medium text-muted-foreground transition-colors duration-200 hover:bg-muted"
             >
               Cancel

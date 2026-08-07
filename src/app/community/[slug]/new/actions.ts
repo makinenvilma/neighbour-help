@@ -8,7 +8,7 @@ export type NoticeField = "title" | "author" | "content" | "category";
 export type NoticeFieldErrors = Partial<Record<NoticeField, string>>;
 
 export type NewNoticeInput = {
-  buildingSlug: string;
+  communitySlug: string;
   title: string;
   author: string;
   content: string;
@@ -30,7 +30,7 @@ export async function createNotice(
   // browser is not the only thing that can call it.
   const errors: NoticeFieldErrors = {};
   if (!title) errors.title = "Give the notice a title.";
-  if (!author) errors.author = "Tell your neighbours who is posting.";
+  if (!author) errors.author = "Tell the community who is posting.";
   if (content.length < 10)
     errors.content = "Write at least a sentence so people know what you mean.";
   if (!Object.hasOwn(categoryLabels, input.category))
@@ -40,24 +40,26 @@ export async function createNotice(
     return { ok: false, errors };
   }
 
-  // Take a slug and resolve it here rather than accepting a buildingId from the
-  // client: a raw foreign key off the wire is a request to write into any
-  // building at all.
+  // Take a slug and resolve it here rather than accepting a communityId from
+  // the client: a raw foreign key off the wire is a request to write into any
+  // community at all.
   //
-  // This confirms the building exists, not that the poster is allowed to post
-  // in it. That check belongs here too, and lands with authentication.
-  const building = await prisma.building.findUnique({
-    where: { slug: input.buildingSlug },
-    select: { id: true },
+  // This confirms the community exists, not that the poster is allowed to post
+  // in it. The slug arrives from the URL, which anyone can edit, so that check
+  // has to compare the signed-in user's membership - and it lands with
+  // authentication.
+  const community = await prisma.community.findUnique({
+    where: { slug: input.communitySlug },
+    select: { id: true, slug: true },
   });
 
-  if (!building) {
-    throw new Error(`No building with slug "${input.buildingSlug}".`);
+  if (!community) {
+    throw new Error(`No community with slug "${input.communitySlug}".`);
   }
 
   const notice = await prisma.notice.create({
     data: {
-      buildingId: building.id,
+      communityId: community.id,
       title,
       author,
       content,
@@ -65,8 +67,10 @@ export async function createNotice(
     },
   });
 
-  revalidatePath("/");
-  revalidatePath("/feed");
+  // Only this community's pages: revalidating another tenant's routes would be
+  // pointless work at best.
+  revalidatePath(`/community/${community.slug}`);
+  revalidatePath(`/community/${community.slug}/feed`);
 
   return { ok: true, id: notice.id };
 }

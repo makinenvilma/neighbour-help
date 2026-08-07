@@ -19,50 +19,51 @@ enum NoticeCategory {
   lost_found
 }
 
-/// One housing company (taloyhtiö). This is the tenant boundary: every row that
-/// belongs to a building carries its buildingId, and nothing is ever read
+/// One community with its own notice board - an apartment block, a street, a
+/// co-working space, a club. This is the tenant boundary: every row that
+/// belongs to a community carries its communityId, and nothing is ever read
 /// without scoping to one.
-model Building {
-  id            String         @id @default(cuid())
-  /// Used in the URL, e.g. /talo/maple-street-12
-  slug          String         @unique
-  name          String
-  residentCount Int            @default(0)
-  notices       Notice[]
-  infoItems     BuildingInfo[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+model Community {
+  id          String          @id @default(cuid())
+  /// Used in the URL, e.g. /community/maple-street
+  slug        String          @unique
+  name        String
+  memberCount Int             @default(0)
+  notices     Notice[]
+  infoItems   CommunityInfo[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 }
 
-/// The "Good to know" rows on the front page - sauna shifts, caretaker number.
-/// A separate table because buildings genuinely differ: not every one has a
-/// sauna, some have a gym or a car charger.
-model BuildingInfo {
-  id         String   @id @default(cuid())
-  buildingId String
-  building   Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+/// The "Good to know" rows on a community's home page. A separate table because
+/// communities differ: one has a shared laundry and a caretaker, another has
+/// meeting times and a contact address.
+model CommunityInfo {
+  id          String    @id @default(cuid())
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
   /// Key into the icon map in the UI, not a component name.
-  icon       String
-  label      String
-  value      String
-  sortOrder  Int      @default(0)
+  icon        String
+  label       String
+  value       String
+  sortOrder   Int       @default(0)
 
-  @@index([buildingId, sortOrder])
+  @@index([communityId, sortOrder])
 }
 
 model Notice {
-  id         Int            @id @default(autoincrement())
-  buildingId String
-  building   Building       @relation(fields: [buildingId], references: [id], onDelete: Cascade)
-  title      String
-  content    String
-  category   NoticeCategory
+  id          Int            @id @default(autoincrement())
+  communityId String
+  community   Community      @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  title       String
+  content     String
+  category    NoticeCategory
   // Free text until authentication lands - then this becomes a User relation.
-  author     String
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  author      String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
-  // Every read filters by building first, so a createdAt-only index would go
+  // Every read filters by community first, so a createdAt-only index would go
   // unused.
-  @@index([buildingId, createdAt])
+  @@index([communityId, createdAt])
 }

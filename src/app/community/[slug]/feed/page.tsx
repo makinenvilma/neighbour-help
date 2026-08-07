@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { MessageCircle, Plus } from "lucide-react";
 import {
   categoryLabels,
@@ -6,27 +7,34 @@ import {
   formatNoticeDate,
 } from "@/lib/notices";
 import { getNotices } from "@/lib/queries";
-import { getCurrentBuilding } from "@/lib/building";
+import { getCommunityBySlug } from "@/lib/community";
 
-export default async function FeedPage() {
-  const building = await getCurrentBuilding();
-  const posts = await getNotices(building.id);
+export default async function FeedPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const community = await getCommunityBySlug(slug);
+  if (!community) notFound();
+
+  const posts = await getNotices(community.id);
 
   return (
     <div className="mx-auto max-w-5xl space-y-10">
       <section className="rounded-lg bg-gradient-to-br from-primary to-accent p-8 text-primary-foreground sm:p-10">
         <p className="text-sm font-medium uppercase tracking-wide opacity-80">
-          {building.name}
+          {community.name}
         </p>
         <h1 className="mt-2 text-3xl font-extrabold sm:text-4xl">
-          Neighbourhood notice board
+          Community notice board
         </h1>
         <p className="mt-3 max-w-xl opacity-90">
-          Everything the neighbours have posted, newest first.
+          Everything the community has posted, newest first.
         </p>
         <div className="mt-6">
           <Link
-            href="/new"
+            href={`/community/${community.slug}/new`}
             className="inline-flex items-center gap-2 rounded-full bg-card px-5 py-2.5 font-medium text-card-foreground transition-transform duration-200 hover:scale-105"
           >
             <Plus className="h-4 w-4" /> New notice
