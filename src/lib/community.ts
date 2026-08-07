@@ -1,15 +1,19 @@
+import { cache } from "react";
 import { prisma } from "@/lib/db";
 
 /**
  * The community a page is rendering, looked up from the slug in the URL.
- * Returns null for an unknown slug so the page can call notFound().
+ * Returns null for an unknown slug so the caller can call notFound().
+ *
+ * Wrapped in `cache` so the layout and the page it wraps share one query
+ * instead of asking the database the same thing twice per request.
  */
-export function getCommunityBySlug(slug: string) {
+export const getCommunityBySlug = cache((slug: string) => {
   return prisma.community.findUnique({
     where: { slug },
     include: { infoItems: { orderBy: { sortOrder: "asc" } } },
   });
-}
+});
 
 /**
  * Every community, for the index at `/`.
