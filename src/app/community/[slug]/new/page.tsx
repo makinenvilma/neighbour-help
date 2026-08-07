@@ -24,9 +24,8 @@ export default async function NewNoticePage({
         >
           <ArrowLeft className="h-4 w-4" /> Back to the board
         </Link>
-        {/* Same eyebrow as the other pages: without a top bar on mobile, this
-            is what says which community you are posting into. */}
-        <p className="mt-3 text-sm font-medium uppercase tracking-wide opacity-80">
+        {/* The mobile top bar already names the community right above this. */}
+        <p className="mt-3 hidden text-sm font-medium uppercase tracking-wide opacity-80 md:block">
           {community.name}
         </p>
         <h1 className="mt-2 text-3xl font-extrabold sm:text-4xl">

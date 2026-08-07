@@ -56,7 +56,8 @@ export default async function CommunityHome({
   return (
     <div className="mx-auto max-w-5xl space-y-10">
       <section className="rounded-lg bg-gradient-to-br from-primary to-accent p-8 text-primary-foreground sm:p-10">
-        <p className="text-sm font-medium uppercase tracking-wide opacity-80">
+        {/* The mobile top bar already names the community right above this. */}
+        <p className="hidden text-sm font-medium uppercase tracking-wide opacity-80 md:block">
           {community.name}
         </p>
         <h1 className="mt-2 text-3xl font-extrabold sm:text-4xl">
@@ -176,15 +177,6 @@ export default async function CommunityHome({
             </ul>
           </section>
 
-          {/* Switching community is rare, so on mobile it sits at the foot of
-              the page rather than in the tab bar. The sidebar covers it on
-              desktop, hence md:hidden. */}
-          <Link
-            href="/"
-            className="flex items-center gap-2 rounded-lg border border-border bg-card p-4 font-medium hover:bg-muted md:hidden"
-          >
-            <Users className="h-5 w-5" /> All communities
-          </Link>
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import Sidebar from "@/components/Sidebar";
+import MobileTopBar from "@/components/MobileTopBar";
 import BottomTabs from "@/components/BottomTabs";
 import type { NavCommunity } from "@/components/NavLinks";
 
@@ -7,8 +8,9 @@ import type { NavCommunity } from "@/components/NavLinks";
  * community layout can tell it which community it is showing - the root layout
  * has no slug of its own to look one up with.
  *
- * Below `md` the sidebar is hidden and the bottom tabs take over; above it the
- * layout is the fixed sidebar it has always been.
+ * Below `md` navigation is split in two: the top bar says where you are and
+ * how to get out, the bottom tabs move you around inside. From `md` up the
+ * sidebar does both and neither is rendered.
  */
 export default function AppShell({
   community = null,
@@ -21,6 +23,7 @@ export default function AppShell({
     <>
       <Sidebar community={community} />
       <div className="flex min-w-0 flex-1 flex-col md:ml-56">
+        <MobileTopBar community={community} />
         {/* Extra bottom padding only where the tabs actually cover content. */}
         <main
           className={`flex-1 p-4 md:p-6 ${community ? "pb-24 md:pb-6" : ""}`}

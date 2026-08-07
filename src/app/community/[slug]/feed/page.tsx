@@ -23,7 +23,8 @@ export default async function FeedPage({
   return (
     <div className="mx-auto max-w-5xl space-y-10">
       <section className="rounded-lg bg-gradient-to-br from-primary to-accent p-8 text-primary-foreground sm:p-10">
-        <p className="text-sm font-medium uppercase tracking-wide opacity-80">
+        {/* The mobile top bar already names the community right above this. */}
+        <p className="hidden text-sm font-medium uppercase tracking-wide opacity-80 md:block">
           {community.name}
         </p>
         <h1 className="mt-2 text-3xl font-extrabold sm:text-4xl">
