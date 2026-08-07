@@ -14,8 +14,8 @@ import {
   categoryLabels,
   categoryStyles,
   formatNoticeDate,
-  notices,
 } from "@/lib/notices";
+import { getNotices } from "@/lib/queries";
 
 const RESIDENTS = 24;
 
@@ -26,7 +26,8 @@ const buildingInfo = [
   { icon: Phone, label: "Caretaker", value: "040 123 4567, weekdays 8-16" },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const notices = await getNotices();
   const latest = notices.slice(0, 3);
   const helpRequests = notices.filter((n) => n.category === "help");
   const events = notices.filter((n) => n.category === "event");

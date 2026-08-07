@@ -4,11 +4,11 @@ import {
   categoryLabels,
   categoryStyles,
   formatNoticeDate,
-  notices,
 } from "@/lib/notices";
+import { getNotices } from "@/lib/queries";
 
-export default function FeedPage() {
-  const posts = notices;
+export default async function FeedPage() {
+  const posts = await getNotices();
 
   return (
     <div className="mx-auto max-w-5xl space-y-10">

@@ -1,0 +1,33 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Values are lowercase so the generated TypeScript union matches the keys the
+// UI already uses in categoryLabels / categoryStyles.
+enum NoticeCategory {
+  announcement
+  help
+  event
+  lost_found
+}
+
+model Notice {
+  id        Int            @id @default(autoincrement())
+  title     String
+  content   String
+  category  NoticeCategory
+  // Free text until authentication lands - then this becomes a User relation.
+  author    String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([createdAt])
+}

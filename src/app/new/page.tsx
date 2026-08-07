@@ -1,18 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, ChevronDown, Info } from "lucide-react";
 import {
   categoryLabels,
   categoryStyles,
   type NoticeCategory,
 } from "@/lib/notices";
+import { createNotice, type NoticeFieldErrors } from "./actions";
 
 const categories = Object.keys(categoryLabels) as NoticeCategory[];
 
-type FieldName = "title" | "author" | "content";
-type Errors = Partial<Record<FieldName, string>>;
+type Errors = NoticeFieldErrors;
 
 const fieldBase =
   "w-full rounded-lg border border-input bg-background px-4 py-2.5 text-foreground outline-none transition-colors duration-200 focus:border-ring";
@@ -26,10 +27,13 @@ export default function NewNoticePage() {
   const [category, setCategory] = useState<NoticeCategory>("announcement");
   const [content, setContent] = useState("");
   const [errors, setErrors] = useState<Errors>({});
-  const [blocked, setBlocked] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  const router = useRouter();
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setFailure(null);
 
     const found: Errors = {};
     if (!title.trim()) found.title = "Give the notice a title.";
@@ -38,7 +42,22 @@ export default function NewNoticePage() {
       found.content = "Write at least a sentence so people know what you mean.";
 
     setErrors(found);
-    setBlocked(Object.keys(found).length === 0);
+    if (Object.keys(found).length > 0) return;
+
+    startTransition(async () => {
+      try {
+        const result = await createNotice({ title, author, content, category });
+        if (!result.ok) {
+          setErrors(result.errors);
+          return;
+        }
+        router.push("/feed");
+      } catch {
+        setFailure(
+          "The notice could not be saved. Check that the database is running and try again.",
+        );
+      }
+    });
   };
 
   return (
@@ -114,6 +133,9 @@ export default function NewNoticePage() {
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               </div>
+              {errors.category && (
+                <p className="mt-1 text-sm text-destructive">{errors.category}</p>
+              )}
             </div>
           </div>
 
@@ -134,18 +156,14 @@ export default function NewNoticePage() {
             )}
           </div>
 
-          {blocked && (
+          {failure && (
             <div className="flex gap-3 rounded-lg border border-border bg-muted p-4">
-              <Info className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+              <Info className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
               <div>
                 <p className="font-medium text-card-foreground">
-                  Nothing was posted yet
+                  Nothing was posted
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  The notice looks fine, but there is no database to save it to.
-                  Your text is still here - it will go through once the data
-                  layer is in place.
-                </p>
+                <p className="text-sm text-muted-foreground">{failure}</p>
               </div>
             </div>
           )}
@@ -153,9 +171,10 @@ export default function NewNoticePage() {
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="submit"
-              className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-transform duration-200 hover:scale-105"
+              disabled={pending}
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-transform duration-200 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
             >
-              Post notice
+              {pending ? "Posting..." : "Post notice"}
             </button>
             <Link
               href="/feed"
