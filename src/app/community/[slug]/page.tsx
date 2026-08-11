@@ -118,7 +118,11 @@ export default async function CommunityHome({
 
           <div className="space-y-4">
             {latest.map((notice) => (
-              <NoticeCard key={notice.id} notice={notice} />
+              <NoticeCard
+                key={notice.id}
+                notice={notice}
+                href={`/community/${community.slug}/notice/${notice.id}`}
+              />
             ))}
           </div>
         </section>

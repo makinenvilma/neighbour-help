@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma } from "@/lib/db";
 import { NoticeCategory } from "@/generated/prisma/enums";
 
@@ -31,6 +32,20 @@ export function getNotices(
     take,
   });
 }
+
+/**
+ * One notice, or null if this community does not have it.
+ *
+ * `findFirst` on both columns rather than `findUnique` on the id: the id comes
+ * out of the URL next to a slug anyone can swap, so looking it up by id alone
+ * would serve /community/anyone-else/notice/5 the notice with id 5 whoever owns
+ * it. Matching both means a mismatched pair is simply a 404.
+ *
+ * Wrapped in `cache` so generateMetadata and the page it titles share one query.
+ */
+export const getNotice = cache((communityId: string, id: number) => {
+  return prisma.notice.findFirst({ where: { id, communityId } });
+});
 
 /** Every category, plus `total`. Categories with no notices are 0, not absent. */
 export type NoticeCounts = Record<NoticeCategory, number> & { total: number };

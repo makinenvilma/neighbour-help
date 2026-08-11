@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   categoryLabels,
   categoryStyles,
@@ -9,12 +10,17 @@ import {
  * One notice as it appears on a board. The community home page and the feed
  * render the same card; only what hangs off the bottom differs, so that part
  * arrives as `footer` rather than as a flag the card has to interpret.
+ *
+ * Only the title is a link. Wrapping the whole card would nest the footer's
+ * button inside an anchor, which is invalid HTML and confuses assistive tech.
  */
 export default function NoticeCard({
   notice,
+  href,
   footer,
 }: {
   notice: Notice;
+  href: string;
   footer?: React.ReactNode;
 }) {
   return (
@@ -30,7 +36,9 @@ export default function NoticeCard({
         </span>
       </div>
       <h3 className="mt-3 text-xl font-bold text-card-foreground">
-        {notice.title}
+        <Link href={href} className="hover:underline">
+          {notice.title}
+        </Link>
       </h3>
       <p className="mt-2 leading-relaxed text-muted-foreground">
         {notice.content}

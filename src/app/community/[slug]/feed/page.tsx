@@ -54,6 +54,7 @@ export default async function FeedPage({
             <NoticeCard
               key={post.id}
               notice={post}
+              href={`/community/${community.slug}/notice/${post.id}`}
               footer={
                 <button className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-primary transition-colors duration-200 hover:bg-muted">
                   <MessageCircle className="h-4 w-4" /> Comment
