@@ -13,13 +13,10 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
-import {
-  categoryLabels,
-  categoryStyles,
-  formatNoticeDate,
-} from "@/lib/notices";
-import { getNotices } from "@/lib/queries";
+import { formatNoticeDate } from "@/lib/notices";
+import { getNoticeCounts, getNotices } from "@/lib/queries";
 import { getCommunityBySlug } from "@/lib/community";
+import NoticeCard from "@/components/NoticeCard";
 
 // CommunityInfo.icon is a key, not a component name - communities pick from
 // this set rather than naming anything the bundle has to resolve at runtime.
@@ -32,6 +29,11 @@ const infoIcons: Record<string, LucideIcon> = {
   info: Info,
 };
 
+// This page is a summary, so every list on it is a preview of a longer one on
+// the feed. The counts below come from the database, not from these arrays.
+const LATEST_LIMIT = 3;
+const HELP_LIMIT = 5;
+
 export default async function CommunityHome({
   params,
 }: {
@@ -41,15 +43,19 @@ export default async function CommunityHome({
   const community = await getCommunityBySlug(slug);
   if (!community) notFound();
 
-  const notices = await getNotices(community.id);
-  const latest = notices.slice(0, 3);
-  const helpRequests = notices.filter((n) => n.category === "help");
-  const events = notices.filter((n) => n.category === "event");
+  // Three narrow queries in parallel rather than one wide one: the page shows
+  // at most eight notices, so fetching the whole board to slice it would grow
+  // unboundedly for output that never does.
+  const [latest, helpRequests, counts] = await Promise.all([
+    getNotices(community.id, { take: LATEST_LIMIT }),
+    getNotices(community.id, { category: "help", take: HELP_LIMIT }),
+    getNoticeCounts(community.id),
+  ]);
 
   const stats = [
-    { icon: Megaphone, value: notices.length, label: "Active notices" },
-    { icon: HeartHandshake, value: helpRequests.length, label: "Help requests" },
-    { icon: CalendarDays, value: events.length, label: "Upcoming events" },
+    { icon: Megaphone, value: counts.total, label: "Active notices" },
+    { icon: HeartHandshake, value: counts.help, label: "Help requests" },
+    { icon: CalendarDays, value: counts.event, label: "Upcoming events" },
     { icon: Users, value: community.memberCount, label: "Members" },
   ];
 
@@ -112,27 +118,7 @@ export default async function CommunityHome({
 
           <div className="space-y-4">
             {latest.map((notice) => (
-              <article
-                key={notice.id}
-                className="rounded-lg border border-border bg-card p-6 transition-shadow duration-300 hover:shadow-lg"
-              >
-                <div className="flex flex-wrap items-center gap-3">
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${categoryStyles[notice.category]}`}
-                  >
-                    {categoryLabels[notice.category]}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {formatNoticeDate(notice.createdAt)} - {notice.author}
-                  </span>
-                </div>
-                <h3 className="mt-3 text-xl font-bold text-card-foreground">
-                  {notice.title}
-                </h3>
-                <p className="mt-2 leading-relaxed text-muted-foreground">
-                  {notice.content}
-                </p>
-              </article>
+              <NoticeCard key={notice.id} notice={notice} />
             ))}
           </div>
         </section>
@@ -153,6 +139,16 @@ export default async function CommunityHome({
                 </li>
               ))}
             </ul>
+            {/* The list is capped, so say what is not on it rather than let the
+                panel quietly disagree with the "Help requests" stat above. */}
+            {counts.help > helpRequests.length && (
+              <Link
+                href={`/community/${community.slug}/feed`}
+                className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+              >
+                {counts.help - helpRequests.length} more <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
           </section>
 
           <section className="rounded-lg border border-border bg-card p-6">

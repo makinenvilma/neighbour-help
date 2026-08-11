@@ -1,13 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MessageCircle, Plus } from "lucide-react";
-import {
-  categoryLabels,
-  categoryStyles,
-  formatNoticeDate,
-} from "@/lib/notices";
 import { getNotices } from "@/lib/queries";
 import { getCommunityBySlug } from "@/lib/community";
+import NoticeCard from "@/components/NoticeCard";
 
 export default async function FeedPage({
   params,
@@ -18,6 +14,8 @@ export default async function FeedPage({
   const community = await getCommunityBySlug(slug);
   if (!community) notFound();
 
+  // No `take`: this page is the whole board by definition. It is the one read
+  // that grows with the community, and the place pagination goes when it does.
   const posts = await getNotices(community.id);
 
   return (
@@ -53,33 +51,15 @@ export default async function FeedPage({
 
         <div className="space-y-4">
           {posts.map((post) => (
-            <article
+            <NoticeCard
               key={post.id}
-              className="rounded-lg border border-border bg-card p-6 transition-shadow duration-300 hover:shadow-lg"
-            >
-              <div className="flex flex-wrap items-center gap-3">
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${categoryStyles[post.category]}`}
-                >
-                  {categoryLabels[post.category]}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  {formatNoticeDate(post.createdAt)} - {post.author}
-                </span>
-              </div>
-              <h3 className="mt-3 text-xl font-bold text-card-foreground">
-                {post.title}
-              </h3>
-              <p className="mt-2 leading-relaxed text-muted-foreground">
-                {post.content}
-              </p>
-
-              <div className="mt-4 flex justify-end">
+              notice={post}
+              footer={
                 <button className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-primary transition-colors duration-200 hover:bg-muted">
                   <MessageCircle className="h-4 w-4" /> Comment
                 </button>
-              </div>
-            </article>
+              }
+            />
           ))}
         </div>
       </section>
