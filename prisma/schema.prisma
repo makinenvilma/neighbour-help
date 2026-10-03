@@ -52,7 +52,10 @@ model CommunityInfo {
 }
 
 model Notice {
-  id          Int            @id @default(autoincrement())
+  // cuid like every other model. An autoincrement id is a counter shared by
+  // every tenant: it makes notice URLs guessable and lets one community read
+  // the whole platform's volume off its own ids.
+  id          String         @id @default(cuid())
   communityId String
   community   Community      @relation(fields: [communityId], references: [id], onDelete: Cascade)
   title       String

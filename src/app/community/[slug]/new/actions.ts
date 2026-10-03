@@ -16,7 +16,7 @@ export type NewNoticeInput = {
 };
 
 export type NewNoticeResult =
-  | { ok: true; id: number }
+  | { ok: true; id: string }
   | { ok: false; errors: NoticeFieldErrors };
 
 export async function createNotice(

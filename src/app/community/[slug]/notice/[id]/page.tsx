@@ -16,11 +16,7 @@ async function load(params: Params) {
   const community = await getCommunityBySlug(slug);
   if (!community) return { community: null, notice: null };
 
-  // Digits only. `Number` alone would accept "1e3" as 1000 and "5.0" as 5,
-  // giving the same notice several URLs.
-  if (!/^\d+$/.test(id)) return { community, notice: null };
-
-  const notice = await getNotice(community.id, Number(id));
+  const notice = await getNotice(community.id, id);
   return { community, notice };
 }
 
