@@ -2,6 +2,7 @@ import Sidebar from "@/components/Sidebar";
 import MobileTopBar from "@/components/MobileTopBar";
 import BottomTabs from "@/components/BottomTabs";
 import type { NavCommunity } from "@/components/NavLinks";
+import { getCurrentUser } from "@/lib/auth";
 
 /**
  * Navigation plus main column. Lives here rather than in the root layout so the
@@ -11,19 +12,25 @@ import type { NavCommunity } from "@/components/NavLinks";
  * Below `md` navigation is split in two: the top bar says where you are and
  * how to get out, the bottom tabs move you around inside. From `md` up the
  * sidebar does both and neither is rendered.
+ *
+ * Every page that renders the shell is behind requireUser, so `user` is only
+ * null if a page forgets that check - and then the shell simply shows no
+ * account controls rather than pretending someone is signed in.
  */
-export default function AppShell({
+export default async function AppShell({
   community = null,
   children,
 }: {
   community?: NavCommunity;
   children: React.ReactNode;
 }) {
+  const user = await getCurrentUser();
+
   return (
     <>
-      <Sidebar community={community} />
+      <Sidebar community={community} userName={user?.name ?? null} />
       <div className="flex min-w-0 flex-1 flex-col md:ml-56">
-        <MobileTopBar community={community} />
+        <MobileTopBar community={community} signedIn={user !== null} />
         {/* Extra bottom padding only where the tabs actually cover content. */}
         <main
           className={`flex-1 p-4 md:p-6 ${community ? "pb-24 md:pb-6" : ""}`}

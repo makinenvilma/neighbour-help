@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
+import { hashPassword } from "../src/lib/password";
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
@@ -9,8 +10,19 @@ const prisma = new PrismaClient({
 const COMMUNITY = {
   slug: "maple-street",
   name: "Maple Street",
-  memberCount: 24,
 };
+
+// Every seeded account has this password. Fine for a local database full of
+// example people; it is printed below so nobody has to look it up.
+const DEV_PASSWORD = "maple-street";
+
+const USERS = [
+  { name: "Mary Example", email: "mary@maple-street.example", role: "member" },
+  { name: "Peter Example", email: "peter@maple-street.example", role: "member" },
+  { name: "Anna Example", email: "anna@maple-street.example", role: "member" },
+  { name: "Jonas Example", email: "jonas@maple-street.example", role: "member" },
+  { name: "Maintenance", email: "maintenance@maple-street.example", role: "admin" },
+] as const;
 
 const INFO_ITEMS = [
   { icon: "calendar", label: "Community meetup", value: "First Tuesday of the month, 6 PM", sortOrder: 0 },
@@ -68,6 +80,27 @@ async function main() {
     update: {},
     create: COMMUNITY,
   });
+
+  // Hashed once and shared: scrypt is slow on purpose, and five identical
+  // hashes would only make seeding slower.
+  const passwordHash = await hashPassword(DEV_PASSWORD);
+  for (const { name, email, role } of USERS) {
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: {},
+      create: { name, email, passwordHash },
+    });
+    await prisma.membership.upsert({
+      where: {
+        userId_communityId: { userId: user.id, communityId: community.id },
+      },
+      update: {},
+      create: { userId: user.id, communityId: community.id, role },
+    });
+  }
+  console.log(
+    `Seeded ${USERS.length} members. Sign in as ${USERS[0].email} / ${DEV_PASSWORD}.`,
+  );
 
   const infoCount = await prisma.communityInfo.count({
     where: { communityId: community.id },

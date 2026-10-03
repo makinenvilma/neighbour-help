@@ -56,7 +56,7 @@ export default async function CommunityHome({
     { icon: Megaphone, value: counts.total, label: "Active notices" },
     { icon: HeartHandshake, value: counts.help, label: "Help requests" },
     { icon: CalendarDays, value: counts.event, label: "Upcoming events" },
-    { icon: Users, value: community.memberCount, label: "Members" },
+    { icon: Users, value: community._count.memberships, label: "Members" },
   ];
 
   return (

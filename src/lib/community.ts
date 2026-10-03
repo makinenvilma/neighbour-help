@@ -11,20 +11,25 @@ import { prisma } from "@/lib/db";
 export const getCommunityBySlug = cache((slug: string) => {
   return prisma.community.findUnique({
     where: { slug },
-    include: { infoItems: { orderBy: { sortOrder: "asc" } } },
+    include: {
+      infoItems: { orderBy: { sortOrder: "asc" } },
+      _count: { select: { memberships: true } },
+    },
   });
 });
 
 /**
- * Every community, for the index at `/`.
+ * The communities `userId` belongs to, for the index at `/`.
  *
- * This lists all tenants to anyone who asks, which is fine while the app is a
- * local development toy and wrong the moment it is real: customers should not
- * be enumerable. It goes away when authentication lands and `/` becomes either
- * a marketing page or a redirect to the community you belong to.
+ * Scoped to the user's memberships rather than listing every community:
+ * customers must not be enumerable by anyone who opens the front page.
  */
-export function getCommunities() {
-  return prisma.community.findMany({ orderBy: { name: "asc" } });
+export function getCommunitiesForUser(userId: string) {
+  return prisma.community.findMany({
+    where: { memberships: { some: { userId } } },
+    orderBy: { name: "asc" },
+    include: { _count: { select: { memberships: true } } },
+  });
 }
 
 export type CommunityWithInfo = NonNullable<

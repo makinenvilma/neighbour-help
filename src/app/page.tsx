@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { ArrowRight, Users, UsersRound } from "lucide-react";
 import AppShell from "@/components/AppShell";
-import { getCommunities } from "@/lib/community";
-
-// Communities are added at runtime, so a prerendered list would go stale.
-export const dynamic = "force-dynamic";
+import { requireUser } from "@/lib/auth";
+import { getCommunitiesForUser } from "@/lib/community";
 
 export default async function CommunityIndex() {
-  const communities = await getCommunities();
+  // Reading the session cookie already makes this page dynamic, so the old
+  // `force-dynamic` is no longer needed.
+  const user = await requireUser();
+  const communities = await getCommunitiesForUser(user.id);
 
   return (
     <AppShell>
@@ -21,20 +22,19 @@ export default async function CommunityIndex() {
             Notice boards
           </h1>
           <p className="mt-3 max-w-xl opacity-90">
-            Every community has its own board. Pick one to see what the members
-            have posted.
+            Every community has its own board. These are the ones you belong
+            to.
           </p>
         </section>
 
         {communities.length === 0 ? (
           <section className="rounded-lg border border-border bg-card p-6">
             <h2 className="text-lg font-bold">No communities yet</h2>
+            {/* There is no way to join one from the app yet - invitations come
+                next. Until then memberships are made by the seed. */}
             <p className="mt-2 text-sm text-muted-foreground">
-              Run{" "}
-              <code className="rounded bg-muted px-1.5 py-0.5">
-                npx prisma db seed
-              </code>{" "}
-              to add an example community with a few notices.
+              You are not a member of any community yet. Ask someone in yours to
+              invite you.
             </p>
           </section>
         ) : (
@@ -51,7 +51,7 @@ export default async function CommunityIndex() {
                 </h2>
                 <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
                   <Users className="h-4 w-4" />
-                  {community.memberCount} members
+                  {community._count.memberships} members
                 </p>
                 <p className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary">
                   Open the board
