@@ -57,6 +57,7 @@ one request cost a single query.
 | The slug is resolved through the membership check | `createNotice` | Editing the slug in the URL to post into a community you are not in |
 | The author comes from the session | `createNotice` | Posting under someone else's name |
 | `/` lists only your communities | `getCommunitiesForUser` | Anyone listing every customer from the front page |
+| The mobile community switcher lists only your communities | `getCommunityNavForUser` | The switcher becoming a second way to list other customers |
 
 ## Server actions are public endpoints
 

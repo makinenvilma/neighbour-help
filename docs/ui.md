@@ -54,6 +54,10 @@ Desktop (md and up)                 Mobile (below md)
   opens them from their button and closes them on a tap outside or Escape, and
   opening one closes the other. They need no JavaScript and stay server
   components.
+- The two menu buttons and Sign out set `cursor-pointer` themselves. Tailwind
+  v4 no longer gives buttons a pointer cursor; links have one by default. The
+  switcher's name has no hover background on purpose: on a touch screen it
+  stays grey after the tap.
 - The switcher is keyed by the community's slug. Moving between two communities
   keeps the layout mounted, and without a fresh element the open menu would
   stay open over the new page.
