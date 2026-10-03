@@ -172,7 +172,10 @@ src/
     Sidebar.tsx            desktop sidebar, hidden below md
     BottomTabs.tsx         mobile tab bar, hidden from md up
     NavLinks.tsx           the sidebar's links
-    SignOutButton.tsx      sign-out form, used by the sidebar and mobile top bar
+    MobileTopBar.tsx       mobile top bar: community switcher and account menu
+    CommunitySwitcher.tsx  mobile menu for moving between your communities
+    AccountMenu.tsx        mobile menu with the signed-in user and sign out
+    SignOutButton.tsx      sign-out form, used by the sidebar and account menu
   lib/
     db.ts                  Prisma client singleton
     auth.ts                getCurrentUser, requireUser

@@ -12,7 +12,7 @@ being viewed (or `null` on the index) and reads the signed-in user itself.
 ```
 Desktop (md and up)                 Mobile (below md)
 ┌──────────┬─────────────────────┐  ┌─────────────────────────┐
-│ Koto     │                     │  │ Koto  Maple St  Commun. │  MobileTopBar
+│ Koto     │                     │  │ Koto  Maple St ▾    (ME)│  MobileTopBar
 │          │                     │  ├─────────────────────────┤
 │ Communit.│                     │  │                         │
 │ ──────── │       <main>        │  │         <main>          │
@@ -31,21 +31,36 @@ Desktop (md and up)                 Mobile (below md)
 | --- | --- | --- |
 | `Sidebar.tsx` | `md` and up | Product name, `NavLinks`, signed-in user and Sign out at the bottom |
 | `NavLinks.tsx` | Inside the sidebar | "Communities", then the current community's Home, Notice Board and New Notice |
-| `MobileTopBar.tsx` | Below `md` | Product name, the community's name centred, and the way back to Communities |
+| `MobileTopBar.tsx` | Below `md` | Product name, the community switcher centred, and the account menu |
+| `CommunitySwitcher.tsx` | Mobile top bar, inside a community | The community's name as a menu: your other communities, and All communities |
+| `AccountMenu.tsx` | Mobile top bar | Initials button opening the signed-in user's name and email, and Sign out |
 | `BottomTabs.tsx` | Below `md`, inside a community | Home, Notices, New, one tap away; the current one highlighted |
-| `SignOutButton.tsx` | Sidebar; mobile top bar on the index | A form that calls `signOut` |
+| `SignOutButton.tsx` | Sidebar; the account menu | A form that calls `signOut` |
 
 ### Mobile details
 
-- The top bar is sticky, so the community name and the way out survive
+- The top bar is sticky, so the community name and the account menu survive
   scrolling.
 - The community name is centred against the whole bar, not between its
-  neighbours: "Koto" and "Communities" differ in width, so centring between them
-  would look off-centre. It truncates rather than pushing the exit link off
-  screen.
-- Inside a community the top bar's right-hand slot is the way out, and there is
-  no room for Sign out beside a centred name. Sign out is on the communities
-  page, one tap away.
+  neighbours: "Koto" and the account button differ in width, so centring
+  between them would look off-centre. It truncates rather than covering the
+  button.
+- The community name is the community switcher. Tapping it lists the
+  communities you belong to (the current one ticked) and "All communities".
+  Choosing one goes to that community's home page.
+- The account menu holds who you are signed in as and sign out. It is on every
+  page, including the communities index where the bottom tabs are not shown.
+- Both menus use the HTML `popover` attribute, not React state. The browser
+  opens them from their button and closes them on a tap outside or Escape, and
+  opening one closes the other. They need no JavaScript and stay server
+  components.
+- The two menu buttons and Sign out set `cursor-pointer` themselves. Tailwind
+  v4 no longer gives buttons a pointer cursor; links have one by default. The
+  switcher's name has no hover background on purpose: on a touch screen it
+  stays grey after the tap.
+- The switcher is keyed by the community's slug. Moving between two communities
+  keeps the layout mounted, and without a fresh element the open menu would
+  stay open over the new page.
 - The bottom tabs leave room for the iPhone home indicator
   (`env(safe-area-inset-bottom)`), and `<main>` gets extra bottom padding only
   where the tabs are actually shown.

@@ -110,6 +110,15 @@ itself. See [Tenancy and access](tenancy-and-access.md).
 **`redirect()` works by throwing.** Keep it outside `try`/`catch`, or the catch
 swallows the redirect.
 
+**New Tailwind classes not showing up?** The browser is using an old copy of
+the stylesheet. The dev server serves the CSS under the same file name after it
+changes, and browsers (Safari especially) keep the cached one. Do a hard reload:
+Cmd + Shift + R in Chrome and Firefox, **Cmd + Option + R** in Safari, where
+Cmd + Shift + R does something else. If that is not enough, restart the dev
+server and reload again. Check that the class is really missing first: if
+`curl` on the page's CSS file finds it, the server is fine and the cache is not.
+
 **Testing in a browser:** the sidebar's Sign out button is a submit button and
 comes before `<main>` in the page. A test that clicks `button[type=submit]`
-signs itself out; scope the selector to `main`.
+signs itself out; scope the selector to `main`. The mobile menus are popovers:
+check `element.matches(":popover-open")` to see whether one is open.
