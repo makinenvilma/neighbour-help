@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { getCommunityBySlug } from "@/lib/community";
+import { requireUser } from "@/lib/auth";
+import { getCommunityForMember } from "@/lib/community";
 import NewNoticeForm from "./NewNoticeForm";
 
 // A server component so the community is resolved here and handed to the form,
@@ -10,7 +11,10 @@ export default async function NewNoticePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const community = await getCommunityBySlug(slug);
+  const [user, community] = await Promise.all([
+    requireUser(),
+    getCommunityForMember(slug),
+  ]);
   if (!community) notFound();
 
   return (
@@ -29,7 +33,7 @@ export default async function NewNoticePage({
         </p>
       </section>
 
-      <NewNoticeForm communitySlug={community.slug} />
+      <NewNoticeForm communitySlug={community.slug} authorName={user.name} />
     </div>
   );
 }

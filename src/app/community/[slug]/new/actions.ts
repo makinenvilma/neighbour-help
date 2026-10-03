@@ -2,35 +2,38 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
+import { requireUser } from "@/lib/auth";
+import { getCommunityForMember } from "@/lib/community";
 import { categoryLabels, type NoticeCategory } from "@/lib/notices";
 
-export type NoticeField = "title" | "author" | "content" | "category";
+export type NoticeField = "title" | "content" | "category";
 export type NoticeFieldErrors = Partial<Record<NoticeField, string>>;
 
 export type NewNoticeInput = {
   communitySlug: string;
   title: string;
-  author: string;
   content: string;
   category: NoticeCategory;
 };
 
 export type NewNoticeResult =
-  | { ok: true; id: number }
+  | { ok: true; id: string }
   | { ok: false; errors: NoticeFieldErrors };
 
 export async function createNotice(
   input: NewNoticeInput,
 ): Promise<NewNoticeResult> {
+  // First, before looking at the input: a server action is a public endpoint,
+  // and the page that renders the form being protected does not protect this.
+  const user = await requireUser();
+
   const title = input.title.trim();
-  const author = input.author.trim();
   const content = input.content.trim();
 
-  // The form validates too, but a server action is a public endpoint - the
-  // browser is not the only thing that can call it.
+  // The form validates too, but the browser is not the only thing that can
+  // call this.
   const errors: NoticeFieldErrors = {};
   if (!title) errors.title = "Give the notice a title.";
-  if (!author) errors.author = "Tell the community who is posting.";
   if (content.length < 10)
     errors.content = "Write at least a sentence so people know what you mean.";
   if (!Object.hasOwn(categoryLabels, input.category))
@@ -42,29 +45,25 @@ export async function createNotice(
 
   // Take a slug and resolve it here rather than accepting a communityId from
   // the client: a raw foreign key off the wire is a request to write into any
-  // community at all.
-  //
-  // This confirms the community exists, not that the poster is allowed to post
-  // in it. The slug arrives from the URL, which anyone can edit, so that check
-  // has to compare the signed-in user's membership - and it lands with
-  // authentication.
-  const community = await prisma.community.findUnique({
-    where: { slug: input.communitySlug },
-    select: { id: true, slug: true },
-  });
-
+  // community at all. The slug is just as editable, which is why this goes
+  // through the membership check rather than a plain lookup - a slug for a
+  // community you are not in resolves to nothing.
+  const community = await getCommunityForMember(input.communitySlug);
   if (!community) {
-    throw new Error(`No community with slug "${input.communitySlug}".`);
+    throw new Error(`Not a member of a community "${input.communitySlug}".`);
   }
 
   const notice = await prisma.notice.create({
     data: {
       communityId: community.id,
+      // From the session, never from the input: who posted is not something
+      // the poster gets to say.
+      authorId: user.id,
       title,
-      author,
       content,
       category: input.category,
     },
+    select: { id: true },
   });
 
   // Only this community's pages: revalidating another tenant's routes would be

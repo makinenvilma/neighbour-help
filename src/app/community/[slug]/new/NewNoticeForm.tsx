@@ -23,11 +23,13 @@ const textareaClasses = `mt-2 ${fieldBase} resize-y leading-relaxed`;
 
 export default function NewNoticeForm({
   communitySlug,
+  authorName,
 }: {
   communitySlug: string;
+  /** Only for the preview. The server takes the author from the session. */
+  authorName: string;
 }) {
   const [title, setTitle] = useState("");
-  const [author, setAuthor] = useState("");
   const [category, setCategory] = useState<NoticeCategory>("announcement");
   const [content, setContent] = useState("");
   const [errors, setErrors] = useState<Errors>({});
@@ -41,7 +43,6 @@ export default function NewNoticeForm({
 
     const found: Errors = {};
     if (!title.trim()) found.title = "Give the notice a title.";
-    if (!author.trim()) found.author = "Tell the community who is posting.";
     if (content.trim().length < 10)
       found.content = "Write at least a sentence so people know what you mean.";
 
@@ -53,7 +54,6 @@ export default function NewNoticeForm({
         const result = await createNotice({
           communitySlug,
           title,
-          author,
           content,
           category,
         });
@@ -91,22 +91,6 @@ export default function NewNoticeForm({
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2">
-            <div>
-              <label htmlFor="author" className="text-sm font-medium text-card-foreground">
-                Your name
-              </label>
-              <input
-                id="author"
-                value={author}
-                onChange={(e) => setAuthor(e.target.value)}
-                placeholder="Anna Example"
-                className={inputClasses}
-              />
-              {errors.author && (
-                <p className="mt-1 text-sm text-destructive">{errors.author}</p>
-              )}
-            </div>
-
             <div>
               <label htmlFor="category" className="text-sm font-medium text-card-foreground">
                 Category
@@ -193,7 +177,7 @@ export default function NewNoticeForm({
               {categoryLabels[category]}
             </span>
             <p className="mt-3 text-sm text-muted-foreground">
-              Today - {author.trim() || "Your name"}
+              Today - {authorName}
             </p>
             <h3
               className={`mt-2 break-words text-lg font-bold ${

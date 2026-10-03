@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { UsersRound } from "lucide-react";
 import type { NavCommunity } from "@/components/NavLinks";
+import SignOutButton from "@/components/SignOutButton";
 
 /**
  * Mobile-only bar carrying the three things the tab bar cannot: the product
@@ -9,8 +10,10 @@ import type { NavCommunity } from "@/components/NavLinks";
  */
 export default function MobileTopBar({
   community,
+  signedIn,
 }: {
   community: NavCommunity;
+  signedIn: boolean;
 }) {
   return (
     <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-border bg-card px-4 py-3 md:hidden">
@@ -18,6 +21,15 @@ export default function MobileTopBar({
           Communities link beside it already goes. The sidebar renders "Koto"
           as a plain heading above its Communities link for the same reason. */}
       <span className="shrink-0 text-sm font-bold">Koto</span>
+
+      {/* Sign out lives on the communities page only. Inside a community the
+          right-hand slot is the way out, and two controls would not fit beside
+          a centred name; leaving is one tap on "Communities" away. */}
+      {!community && signedIn && (
+        <div className="ml-auto">
+          <SignOutButton className="flex items-center gap-1 whitespace-nowrap text-sm font-medium text-primary hover:underline" />
+        </div>
+      )}
 
       {community && (
         <>

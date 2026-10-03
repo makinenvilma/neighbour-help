@@ -28,11 +28,67 @@ model Community {
   /// Used in the URL, e.g. /community/maple-street
   slug        String          @unique
   name        String
-  memberCount Int             @default(0)
+  // No memberCount column: a stored count drifts the moment someone joins or
+  // leaves without it being updated. Count the memberships instead.
+  memberships Membership[]
   notices     Notice[]
   infoItems   CommunityInfo[]
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
+}
+
+/// A person with a login. Users are global rather than per community, so one
+/// account can belong to several - someone in a housing company and a club.
+model User {
+  id           String       @id @default(cuid())
+  /// Stored lowercased, so "Anna@Example.com" and "anna@example.com" cannot be
+  /// two accounts.
+  email        String       @unique
+  name         String
+  /// scrypt hash with its salt and parameters - never the password itself.
+  /// Format lives in src/lib/password.ts.
+  passwordHash String
+  sessions     Session[]
+  memberships  Membership[]
+  notices      Notice[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+/// One signed-in browser. The cookie holds a random token; this row holds only
+/// its SHA-256 hash, so someone who reads the database still cannot sign in as
+/// anyone. Deleting the row signs that browser out.
+model Session {
+  /// SHA-256 of the cookie token, hex encoded.
+  id        String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+enum MembershipRole {
+  member
+  admin
+}
+
+/// Who belongs to which community. This is what authorisation checks: being
+/// signed in only says who you are, a membership says what you may see.
+model Membership {
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  communityId String
+  community   Community      @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  role        MembershipRole @default(member)
+  createdAt   DateTime       @default(now())
+
+  // The pair is the key: nobody can be a member of the same community twice.
+  // The primary key index starts with userId, which covers "my communities";
+  // the second index covers "members of this community".
+  @@id([userId, communityId])
+  @@index([communityId])
 }
 
 /// The "Good to know" rows on a community's home page. A separate table because
@@ -52,18 +108,27 @@ model CommunityInfo {
 }
 
 model Notice {
-  id          Int            @id @default(autoincrement())
+  // cuid like every other model. An autoincrement id is a counter shared by
+  // every tenant: it makes notice URLs guessable and lets one community read
+  // the whole platform's volume off its own ids.
+  id          String         @id @default(cuid())
   communityId String
   community   Community      @relation(fields: [communityId], references: [id], onDelete: Cascade)
   title       String
   content     String
   category    NoticeCategory
-  // Free text until authentication lands - then this becomes a User relation.
-  author      String
+  // Deleting an account deletes what it posted. The other choice, keeping the
+  // notices under "deleted user", needs an optional relation and is a product
+  // decision for when account deletion exists.
+  authorId    String
+  author      User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
   // Every read filters by community first, so a createdAt-only index would go
   // unused.
   @@index([communityId, createdAt])
+  // For the foreign key: deleting a user has to find their notices, and
+  // Postgres does not index foreign key columns on its own.
+  @@index([authorId])
 }
