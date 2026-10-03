@@ -30,7 +30,10 @@ export default async function AppShell({
     <>
       <Sidebar community={community} userName={user?.name ?? null} />
       <div className="flex min-w-0 flex-1 flex-col md:ml-56">
-        <MobileTopBar community={community} signedIn={user !== null} />
+        <MobileTopBar
+          community={community}
+          user={user && { name: user.name, email: user.email }}
+        />
         {/* Extra bottom padding only where the tabs actually cover content. */}
         <main
           className={`flex-1 p-4 md:p-6 ${community ? "pb-24 md:pb-6" : ""}`}
