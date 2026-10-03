@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { formatNoticeDate } from "@/lib/notices";
 import { getNoticeCounts, getNotices } from "@/lib/queries";
-import { getCommunityBySlug } from "@/lib/community";
+import { getCommunityForMember } from "@/lib/community";
 import NoticeCard from "@/components/NoticeCard";
 
 // CommunityInfo.icon is a key, not a component name - communities pick from
@@ -40,7 +40,7 @@ export default async function CommunityHome({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const community = await getCommunityBySlug(slug);
+  const community = await getCommunityForMember(slug);
   if (!community) notFound();
 
   // Three narrow queries in parallel rather than one wide one: the page shows
@@ -138,7 +138,7 @@ export default async function CommunityHome({
                 <li key={notice.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
                   <p className="font-medium text-card-foreground">{notice.title}</p>
                   <p className="text-sm text-muted-foreground">
-                    {notice.author} · {formatNoticeDate(notice.createdAt)}
+                    {notice.author.name} · {formatNoticeDate(notice.createdAt)}
                   </p>
                 </li>
               ))}

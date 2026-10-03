@@ -84,12 +84,14 @@ async function main() {
   // Hashed once and shared: scrypt is slow on purpose, and five identical
   // hashes would only make seeding slower.
   const passwordHash = await hashPassword(DEV_PASSWORD);
+  const userIds = new Map<string, string>();
   for (const { name, email, role } of USERS) {
     const user = await prisma.user.upsert({
       where: { email },
       update: {},
       create: { name, email, passwordHash },
     });
+    userIds.set(name, user.id);
     await prisma.membership.upsert({
       where: {
         userId_communityId: { userId: user.id, communityId: community.id },
@@ -123,7 +125,12 @@ async function main() {
   }
 
   await prisma.notice.createMany({
-    data: NOTICES.map((notice) => ({ ...notice, communityId: community.id })),
+    // NOTICES name their author; the table wants the user's id.
+    data: NOTICES.map(({ author, ...notice }) => ({
+      ...notice,
+      communityId: community.id,
+      authorId: userIds.get(author)!,
+    })),
   });
   console.log(`Seeded ${NOTICES.length} notices for ${community.name}.`);
 }

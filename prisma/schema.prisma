@@ -50,6 +50,7 @@ model User {
   passwordHash String
   sessions     Session[]
   memberships  Membership[]
+  notices      Notice[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 }
@@ -116,12 +117,18 @@ model Notice {
   title       String
   content     String
   category    NoticeCategory
-  // Free text until authentication lands - then this becomes a User relation.
-  author      String
+  // Deleting an account deletes what it posted. The other choice, keeping the
+  // notices under "deleted user", needs an optional relation and is a product
+  // decision for when account deletion exists.
+  authorId    String
+  author      User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
   // Every read filters by community first, so a createdAt-only index would go
   // unused.
   @@index([communityId, createdAt])
+  // For the foreign key: deleting a user has to find their notices, and
+  // Postgres does not index foreign key columns on its own.
+  @@index([authorId])
 }

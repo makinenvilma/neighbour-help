@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MessageCircle, Plus } from "lucide-react";
 import { getNotices } from "@/lib/queries";
-import { getCommunityBySlug } from "@/lib/community";
+import { getCommunityForMember } from "@/lib/community";
 import NoticeCard from "@/components/NoticeCard";
 
 export default async function FeedPage({
@@ -11,7 +11,7 @@ export default async function FeedPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const community = await getCommunityBySlug(slug);
+  const community = await getCommunityForMember(slug);
   if (!community) notFound();
 
   // No `take`: this page is the whole board by definition. It is the one read

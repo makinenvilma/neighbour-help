@@ -3,8 +3,8 @@ import {
   categoryLabels,
   categoryStyles,
   formatNoticeDate,
-  type Notice,
 } from "@/lib/notices";
+import type { NoticeWithAuthor } from "@/lib/queries";
 
 /**
  * One notice as it appears on a board. The community home page and the feed
@@ -19,7 +19,7 @@ export default function NoticeCard({
   href,
   footer,
 }: {
-  notice: Notice;
+  notice: NoticeWithAuthor;
   href: string;
   footer?: React.ReactNode;
 }) {
@@ -32,7 +32,7 @@ export default function NoticeCard({
           {categoryLabels[notice.category]}
         </span>
         <span className="text-sm text-muted-foreground">
-          {formatNoticeDate(notice.createdAt)} - {notice.author}
+          {formatNoticeDate(notice.createdAt)} - {notice.author.name}
         </span>
       </div>
       <h3 className="mt-3 text-xl font-bold text-card-foreground">
