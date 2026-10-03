@@ -7,6 +7,9 @@ A community is whatever group shares the board: an apartment block, a street, a
 co-working space, a club. Each one gets its own board at its own URL, and no
 community can see another's notices.
 
+Detailed documentation, one page per area (architecture, data model, routes,
+authentication, tenancy, notices, UI, development), is in [`docs/`](docs/README.md).
+
 ## Status
 
 Work in progress, heading towards a product where each community is its own
