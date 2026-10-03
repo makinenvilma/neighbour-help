@@ -42,6 +42,19 @@ export function getCommunitiesForUser(userId: string) {
   });
 }
 
+/**
+ * Just the names and slugs of `userId`'s communities, for the community
+ * switcher in the mobile top bar. Rendered on every community page, so it asks
+ * for two columns rather than the counts the index shows.
+ */
+export function getCommunityNavForUser(userId: string) {
+  return prisma.community.findMany({
+    where: { memberships: { some: { userId } } },
+    orderBy: { name: "asc" },
+    select: { slug: true, name: true },
+  });
+}
+
 export type CommunityWithInfo = NonNullable<
   Awaited<ReturnType<typeof getCommunityForMember>>
 >;

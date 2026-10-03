@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { UsersRound } from "lucide-react";
 import SignOutButton from "@/components/SignOutButton";
 
 export type MenuUser = { name: string; email: string };
@@ -19,13 +17,13 @@ const itemClasses =
 
 /**
  * The mobile account menu: an initials button that opens who you are signed in
- * as, the way back to your communities, and sign out.
+ * as, and sign out. Moving between communities is the community switcher's
+ * job, in the middle of the same bar.
  *
  * Built on the HTML `popover` attribute rather than React state. The browser
  * opens it from the button, closes it on a tap outside or Escape, and puts it
  * above everything else, all without any JavaScript of ours - so this stays a
- * server component. Following the Communities link closes it too: the index
- * renders its own shell, so the menu is replaced along with it.
+ * server component.
  */
 export default function AccountMenu({ user }: { user: MenuUser }) {
   return (
@@ -34,7 +32,7 @@ export default function AccountMenu({ user }: { user: MenuUser }) {
         type="button"
         popoverTarget="account-menu"
         aria-label={`Account menu for ${user.name}`}
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
+        className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
       >
         {initials(user.name)}
       </button>
@@ -59,9 +57,6 @@ export default function AccountMenu({ user }: { user: MenuUser }) {
           </p>
         </div>
         <div className="pt-2">
-          <Link href="/" className={itemClasses}>
-            <UsersRound className="h-4 w-4 shrink-0" /> Communities
-          </Link>
           <SignOutButton className={itemClasses} />
         </div>
       </div>

@@ -3,6 +3,7 @@ import MobileTopBar from "@/components/MobileTopBar";
 import BottomTabs from "@/components/BottomTabs";
 import type { NavCommunity } from "@/components/NavLinks";
 import { getCurrentUser } from "@/lib/auth";
+import { getCommunityNavForUser } from "@/lib/community";
 
 /**
  * Navigation plus main column. Lives here rather than in the root layout so the
@@ -25,6 +26,10 @@ export default async function AppShell({
   children: React.ReactNode;
 }) {
   const user = await getCurrentUser();
+  // Only inside a community, where the switcher is shown. The index lists the
+  // same communities itself.
+  const communities =
+    user && community ? await getCommunityNavForUser(user.id) : [];
 
   return (
     <>
@@ -32,6 +37,7 @@ export default async function AppShell({
       <div className="flex min-w-0 flex-1 flex-col md:ml-56">
         <MobileTopBar
           community={community}
+          communities={communities}
           user={user && { name: user.name, email: user.email }}
         />
         {/* Extra bottom padding only where the tabs actually cover content. */}

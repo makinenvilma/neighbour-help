@@ -12,7 +12,7 @@ being viewed (or `null` on the index) and reads the signed-in user itself.
 ```
 Desktop (md and up)                 Mobile (below md)
 ┌──────────┬─────────────────────┐  ┌─────────────────────────┐
-│ Koto     │                     │  │ Koto   Maple St     (ME)│  MobileTopBar
+│ Koto     │                     │  │ Koto  Maple St ▾    (ME)│  MobileTopBar
 │          │                     │  ├─────────────────────────┤
 │ Communit.│                     │  │                         │
 │ ──────── │       <main>        │  │         <main>          │
@@ -31,8 +31,9 @@ Desktop (md and up)                 Mobile (below md)
 | --- | --- | --- |
 | `Sidebar.tsx` | `md` and up | Product name, `NavLinks`, signed-in user and Sign out at the bottom |
 | `NavLinks.tsx` | Inside the sidebar | "Communities", then the current community's Home, Notice Board and New Notice |
-| `MobileTopBar.tsx` | Below `md` | Product name, the community's name centred, and the account menu |
-| `AccountMenu.tsx` | Mobile top bar | Initials button opening the signed-in user's name and email, Communities, and Sign out |
+| `MobileTopBar.tsx` | Below `md` | Product name, the community switcher centred, and the account menu |
+| `CommunitySwitcher.tsx` | Mobile top bar, inside a community | The community's name as a menu: your other communities, and All communities |
+| `AccountMenu.tsx` | Mobile top bar | Initials button opening the signed-in user's name and email, and Sign out |
 | `BottomTabs.tsx` | Below `md`, inside a community | Home, Notices, New, one tap away; the current one highlighted |
 | `SignOutButton.tsx` | Sidebar; the account menu | A form that calls `signOut` |
 
@@ -44,12 +45,18 @@ Desktop (md and up)                 Mobile (below md)
   neighbours: "Koto" and the account button differ in width, so centring
   between them would look off-centre. It truncates rather than covering the
   button.
-- The account menu is the one place for everything about the signed-in user:
-  who they are, the way back to their communities, and sign out. It is on every
+- The community name is the community switcher. Tapping it lists the
+  communities you belong to (the current one ticked) and "All communities".
+  Choosing one goes to that community's home page.
+- The account menu holds who you are signed in as and sign out. It is on every
   page, including the communities index where the bottom tabs are not shown.
-- The menu uses the HTML `popover` attribute, not React state. The browser opens
-  it from the button and closes it on a tap outside or Escape, so it needs no
-  JavaScript and `AccountMenu` stays a server component.
+- Both menus use the HTML `popover` attribute, not React state. The browser
+  opens them from their button and closes them on a tap outside or Escape, and
+  opening one closes the other. They need no JavaScript and stay server
+  components.
+- The switcher is keyed by the community's slug. Moving between two communities
+  keeps the layout mounted, and without a fresh element the open menu would
+  stay open over the new page.
 - The bottom tabs leave room for the iPhone home indicator
   (`env(safe-area-inset-bottom)`), and `<main>` gets extra bottom padding only
   where the tabs are actually shown.
