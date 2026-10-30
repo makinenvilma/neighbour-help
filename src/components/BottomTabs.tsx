@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Megaphone, PlusCircle } from "lucide-react";
+import { Home, Megaphone, PlusCircle, Shield } from "lucide-react";
 import type { NavCommunity } from "@/components/NavLinks";
 
 /**
- * The mobile navigation: the three places you move between inside a community,
+ * The mobile navigation: the places you move between inside a community,
  * one tap away and always visible. Hidden from `md` up, where the sidebar does
  * this job.
  *
@@ -22,6 +22,9 @@ export default function BottomTabs({ community }: { community: NavCommunity }) {
     { href: base, label: "Home", icon: Home },
     { href: `${base}/feed`, label: "Notices", icon: Megaphone },
     { href: `${base}/new`, label: "New", icon: PlusCircle },
+    ...(community.isAdmin
+      ? [{ href: `${base}/admin`, label: "Admin", icon: Shield }]
+      : []),
   ];
 
   return (

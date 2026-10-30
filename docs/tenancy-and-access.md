@@ -87,8 +87,12 @@ account an admin.
 `getCommunityForMember` returns the caller's `role` alongside the community.
 Admin-only pages and actions go through `getCommunityForAdmin` instead, which
 returns null for plain members as well as non-members, so callers handle both
-the same way (a 404). Nothing uses it yet: the first admin features are
-approving join requests and managing the join code (see Joining below).
+the same way (a 404). The admin page, `/community/[slug]/admin`, and its
+actions use it.
+
+The Admin link in the navigation is shown only to admins (`isAdmin` on the
+navigation's community). That is convenience, not protection: the page and the
+actions check the role themselves, and a member who types the URL gets a 404.
 
 ## Joining
 
@@ -115,8 +119,24 @@ code still valid, not already a member. It upserts on the unique
 `(userId, communityId)` pair, so asking again after a rejection reopens the
 same request.
 
-Approving requests, and showing and rotating the code, are the admin view -
-not built yet. Until then a request can only be approved in the database.
+Admins see pending requests on `/community/[slug]/admin` and approve or reject
+them. `approveJoinRequest` and `rejectJoinRequest` in
+`src/app/community/[slug]/admin/actions.ts`:
+
+- go through `getCommunityForAdmin` first, and throw for anyone else;
+- only touch a request matching **both** its id and that community's id, so an
+  admin of one community cannot approve a request made to another by sending
+  its id;
+- only move a request that is still `pending` (`updateMany` with a status
+  filter), so two admins clicking at once approve it once, and a rejected
+  request is not quietly approved;
+- approve in a transaction: the request becomes `approved` and the
+  `Membership` is created together, or neither happens.
+
+This was tested by capturing an admin's approve call and replaying it with a
+plain member's cookie: it fails and nothing changes.
+
+Showing the join link as a QR code and rotating the code are not built yet.
 
 ## Not built yet
 

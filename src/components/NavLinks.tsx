@@ -1,7 +1,13 @@
 import Link from "next/link";
-import { Home, Megaphone, PlusCircle, UsersRound } from "lucide-react";
+import { Home, Megaphone, PlusCircle, Shield, UsersRound } from "lucide-react";
 
-export type NavCommunity = { slug: string; name: string } | null;
+// `isAdmin` only decides whether the Admin link is shown. Hiding a link
+// protects nothing - the admin page checks the role itself.
+export type NavCommunity = {
+  slug: string;
+  name: string;
+  isAdmin: boolean;
+} | null;
 
 const linkClasses =
   "flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted";
@@ -42,6 +48,14 @@ export default function NavLinks({ community }: { community: NavCommunity }) {
           >
             <PlusCircle className="h-5 w-5" /> New Notice
           </Link>
+          {community.isAdmin && (
+            <Link
+              href={`/community/${community.slug}/admin`}
+              className={linkClasses}
+            >
+              <Shield className="h-5 w-5" /> Admin
+            </Link>
+          )}
         </div>
       )}
     </nav>

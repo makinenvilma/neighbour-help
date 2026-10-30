@@ -23,6 +23,28 @@ export function getJoinTarget(joinCode: string, userId: string) {
 }
 
 /**
+ * The requests waiting for an admin of `communityId`, oldest first so nobody
+ * who asked early is left at the bottom of the list.
+ *
+ * Takes the id rather than a slug: the caller has already been through
+ * getCommunityForAdmin, which is the check that matters.
+ */
+export function getPendingJoinRequests(communityId: string) {
+  return prisma.joinRequest.findMany({
+    where: { communityId, status: "pending" },
+    orderBy: { createdAt: "asc" },
+    select: {
+      id: true,
+      apartment: true,
+      createdAt: true,
+      // Name and email so the admin can tell who this is. Nothing else about
+      // the user is the admin's business.
+      user: { select: { name: true, email: true } },
+    },
+  });
+}
+
+/**
  * Just the name of the community a join code belongs to, for the page a
  * signed-out visitor sees. Showing it reveals nothing new: anyone with the code
  * could sign up and see it on the next page anyway.

@@ -19,7 +19,13 @@ export default async function CommunityLayout({
   return (
     <AppShell
       community={
-        community ? { slug: community.slug, name: community.name } : null
+        community
+          ? {
+              slug: community.slug,
+              name: community.name,
+              isAdmin: community.role === "admin",
+            }
+          : null
       }
     >
       {children}
