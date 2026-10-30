@@ -136,7 +136,20 @@ them. `approveJoinRequest` and `rejectJoinRequest` in
 This was tested by capturing an admin's approve call and replaying it with a
 plain member's cookie: it fails and nothing changes.
 
-Showing the join link as a QR code and rotating the code are not built yet.
+The same page shows the join link and its QR code, with buttons to copy the
+link, download the QR code (SVG, so it prints sharp) and make a new link.
+
+- **The QR code is drawn on the server** with the `qrcode` package and sent as
+  an image, so no QR library reaches the browser.
+- **The link's origin is the address the admin opened the page at** (the Host
+  header). In production that is the real domain. In development it means a
+  page opened at the machine's network address, e.g. `http://192.168.1.5:3000`,
+  makes a QR code a phone on the same network can open, where `localhost` would
+  not. Trusting the header is safe here only because the link is shown to the
+  admin who sent it.
+- **`rotateJoinCode`** gives the community a new random code after a
+  confirmation. Old links and printed QR codes stop working at once. Requests
+  already made with the old code stay in the list for the admin to decide.
 
 ## Not built yet
 

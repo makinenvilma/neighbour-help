@@ -1,12 +1,13 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getCommunityForAdmin } from "@/lib/community";
 
 /**
- * Both actions take the slug and the request id from the page, and trust
- * neither. The slug goes through the admin check; the request id is only ever
+ * Every action here takes the slug (and the request id) from the page, and
+ * trusts neither. The slug goes through the admin check; the request id is only ever
  * used together with that community's id, so an admin of one community cannot
  * approve a request made to another by sending its id.
  */
@@ -52,6 +53,28 @@ export async function rejectJoinRequest(slug: string, requestId: string) {
   await prisma.joinRequest.updateMany({
     where: { id: requestId, communityId: community.id, status: "pending" },
     data: { status: "rejected" },
+  });
+
+  revalidatePath(`/community/${community.slug}/admin`);
+}
+
+/**
+ * Give the community a new join code. Every link and QR code made from the old
+ * one stops working at once - the fix for a code that has spread further than
+ * it should, or for a printout left up after it was meant to come down.
+ *
+ * Requests already made with the old code stay in the list: those people asked
+ * while the code was valid, and an admin still decides on each of them.
+ */
+export async function rotateJoinCode(slug: string) {
+  const community = await requireAdminOf(slug);
+
+  await prisma.community.update({
+    where: { id: community.id },
+    // 16 random bytes as hex: the same 32-character shape as the
+    // gen_random_uuid() code Postgres gave the community at first, and a few
+    // bits harder to guess (128 against 122).
+    data: { joinCode: randomBytes(16).toString("hex") },
   });
 
   revalidatePath(`/community/${community.slug}/admin`);

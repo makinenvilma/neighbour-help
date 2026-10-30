@@ -17,7 +17,7 @@ community's name with links to sign up or sign in, both carrying
 | `/community/[slug]/feed` | Every notice, newest first | Member | `src/app/community/[slug]/feed/page.tsx` |
 | `/community/[slug]/new` | Form for a new notice, with a live preview | Member | `src/app/community/[slug]/new/page.tsx` |
 | `/community/[slug]/notice/[id]` | One notice in full | Member, and the notice must belong to that community | `src/app/community/[slug]/notice/[id]/page.tsx` |
-| `/community/[slug]/admin` | Pending join requests to approve or reject | Admin of that community (members get a 404) | `src/app/community/[slug]/admin/page.tsx` |
+| `/community/[slug]/admin` | The join link and QR code; pending join requests to approve or reject | Admin of that community (members get a 404) | `src/app/community/[slug]/admin/page.tsx` |
 
 ## Layouts
 
@@ -55,3 +55,4 @@ renders inside the layout with the navigation intact.
 | `createNotice` | `src/app/community/[slug]/new/actions.ts` | The new notice form |
 | `requestToJoin` | `src/app/join/[code]/actions.ts` | The join form, with the code bound in by the page |
 | `approveJoinRequest`, `rejectJoinRequest` | `src/app/community/[slug]/admin/actions.ts` | The buttons on each request on the admin page |
+| `rotateJoinCode` | `src/app/community/[slug]/admin/actions.ts` | "Make a new link" on the admin page, after a confirmation |
