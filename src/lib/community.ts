@@ -77,6 +77,26 @@ export function getCommunityNavForUser(userId: string) {
   });
 }
 
+/**
+ * Everyone in `communityId`, admins first and then by name, for the member
+ * list on the admin page.
+ *
+ * Takes the id rather than a slug: the caller has already been through
+ * getCommunityForAdmin, which is the check that matters.
+ */
+export function getMembers(communityId: string) {
+  return prisma.membership.findMany({
+    where: { communityId },
+    // The enum is declared member, admin, so descending puts admins first.
+    orderBy: [{ role: "desc" }, { user: { name: "asc" } }],
+    select: {
+      role: true,
+      createdAt: true,
+      user: { select: { id: true, name: true, email: true } },
+    },
+  });
+}
+
 export type CommunityWithInfo = NonNullable<
   Awaited<ReturnType<typeof getCommunityForMember>>
 >;

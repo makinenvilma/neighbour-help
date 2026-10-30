@@ -2,7 +2,10 @@
 
 import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import type { MembershipRole } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import { requireUser } from "@/lib/auth";
 import { getCommunityForAdmin } from "@/lib/community";
 
 /**
@@ -77,5 +80,54 @@ export async function rotateJoinCode(slug: string) {
     data: { joinCode: randomBytes(16).toString("hex") },
   });
 
+  revalidatePath(`/community/${community.slug}/admin`);
+}
+
+/**
+ * Make `userId` an admin or a plain member of the community.
+ *
+ * The one rule: a community always keeps at least one admin. Without one,
+ * nobody could ever let a new member in or make another admin again.
+ */
+export async function setMemberRole(
+  slug: string,
+  userId: string,
+  role: MembershipRole,
+) {
+  const community = await requireAdminOf(slug);
+  // `role` is bound in by the page, but arrives over the wire like the rest.
+  if (role !== "admin" && role !== "member") {
+    throw new Error(`Not a role: "${role}".`);
+  }
+
+  const user = await requireUser();
+  let demotedSelf = false;
+
+  await prisma.$transaction(async (tx) => {
+    // Lock the community row until this transaction ends. Two admins demoting
+    // each other at the same moment would otherwise both count two admins,
+    // both go ahead, and leave none. With the lock, the second waits, then
+    // counts one and stops.
+    await tx.$queryRaw`SELECT id FROM "Community" WHERE id = ${community.id} FOR UPDATE`;
+
+    if (role === "member") {
+      const admins = await tx.membership.count({
+        where: { communityId: community.id, role: "admin" },
+      });
+      if (admins <= 1) return;
+    }
+
+    // updateMany so the community id is part of the match: a userId from
+    // another community changes nothing.
+    const { count } = await tx.membership.updateMany({
+      where: { userId, communityId: community.id },
+      data: { role },
+    });
+    demotedSelf = count > 0 && role === "member" && userId === user.id;
+  });
+
+  // Someone who just gave up their own admin role cannot see this page any
+  // more; send them to the community instead of a 404.
+  if (demotedSelf) redirect(`/community/${community.slug}`);
   revalidatePath(`/community/${community.slug}/admin`);
 }

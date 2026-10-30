@@ -94,6 +94,24 @@ returns null for plain members as well as non-members, so callers handle both
 the same way (a 404). The admin page, `/community/[slug]/admin`, and its
 actions use it.
 
+### Changing roles
+
+The admin page lists every member. Admins can make a member an admin, make
+another admin a member, or step down themselves (`setMemberRole`). The rule
+that matters: **a community always keeps at least one admin**, or nobody could
+ever let anyone in or make a new admin again. The page hides the button on the
+last admin, and the action refuses it.
+
+Counting admins and then demoting is a race on its own: two admins demoting
+each other at the same moment both count two, both go ahead, and leave none.
+The action therefore locks the community row (`SELECT ... FOR UPDATE`) for the
+length of its transaction, so the second demotion waits, counts one, and stops.
+This was tested by firing both demotions at once: with the lock one admin
+always remains; with the lock removed, two runs out of three left none.
+
+An admin who steps down is sent to the community home rather than a 404 on the
+page they can no longer see.
+
 The Admin link in the navigation is shown only to admins (`isAdmin` on the
 navigation's community). That is convenience, not protection: the page and the
 actions check the role themselves, and a member who types the URL gets a 404.

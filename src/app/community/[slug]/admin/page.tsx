@@ -1,14 +1,16 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { Check, X } from "lucide-react";
+import { Check, Shield, User, X } from "lucide-react";
 import QRCode from "qrcode";
-import { getCommunityForAdmin } from "@/lib/community";
+import { requireUser } from "@/lib/auth";
+import { getCommunityForAdmin, getMembers } from "@/lib/community";
 import { getPendingJoinRequests } from "@/lib/join";
 import { formatNoticeDate } from "@/lib/notices";
 import {
   approveJoinRequest,
   rejectJoinRequest,
   rotateJoinCode,
+  setMemberRole,
 } from "./actions";
 import JoinLinkPanel from "./JoinLinkPanel";
 
@@ -27,10 +29,13 @@ export default async function AdminPage({
   const community = await getCommunityForAdmin(slug);
   if (!community) notFound();
 
-  const [requests, joinUrl] = await Promise.all([
+  const [user, requests, members, joinUrl] = await Promise.all([
+    requireUser(),
     getPendingJoinRequests(community.id),
+    getMembers(community.id),
     joinLinkFor(community.joinCode),
   ]);
+  const adminCount = members.filter((m) => m.role === "admin").length;
   // SVG so it prints sharp at any size; as a data URL so it is an ordinary
   // image the browser can also download, rather than markup put into the page.
   const qrSvg = await QRCode.toString(joinUrl, { type: "svg", margin: 1 });
@@ -45,7 +50,8 @@ export default async function AdminPage({
         </p>
         <h1 className="mt-2 text-3xl font-extrabold sm:text-4xl">Admin</h1>
         <p className="mt-3 max-w-xl opacity-90">
-          Let new members in. Only admins of {community.name} see this page.
+          Let new members in and choose who else runs {community.name}. Only
+          admins see this page.
         </p>
       </section>
 
@@ -126,6 +132,80 @@ export default async function AdminPage({
             ))}
           </ul>
         )}
+      </section>
+
+      <section>
+        <div className="mb-4 flex items-baseline justify-between">
+          <h2 className="text-2xl font-bold">Members</h2>
+          <p className="text-sm text-muted-foreground">
+            {members.length} members, {adminCount}{" "}
+            {adminCount === 1 ? "admin" : "admins"}
+          </p>
+        </div>
+
+        <ul className="space-y-3">
+          {members.map((member) => {
+            const isAdmin = member.role === "admin";
+            const isYou = member.user.id === user.id;
+            // The server refuses this too; hiding the button just saves a
+            // click that would do nothing.
+            const isLastAdmin = isAdmin && adminCount === 1;
+            return (
+              <li
+                key={member.user.id}
+                className="flex flex-col gap-4 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  {isAdmin ? (
+                    <Shield className="h-5 w-5 shrink-0 text-primary" />
+                  ) : (
+                    <User className="h-5 w-5 shrink-0 text-muted-foreground" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-medium">
+                      {member.user.name}
+                      {isYou && (
+                        <span className="text-muted-foreground"> (you)</span>
+                      )}
+                    </p>
+                    <p className="truncate text-sm text-muted-foreground">
+                      {/* The membership's createdAt is when they joined, not
+                          when their role last changed. */}
+                      {member.user.email} - {isAdmin ? "admin" : "member"},
+                      joined {formatNoticeDate(member.createdAt)}
+                    </p>
+                  </div>
+                </div>
+                {isLastAdmin ? (
+                  <p className="shrink-0 text-sm text-muted-foreground">
+                    Make someone else an admin before stepping down.
+                  </p>
+                ) : (
+                  <form
+                    action={setMemberRole.bind(
+                      null,
+                      community.slug,
+                      member.user.id,
+                      isAdmin ? "member" : "admin",
+                    )}
+                    className="shrink-0"
+                  >
+                    <button
+                      type="submit"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-muted"
+                    >
+                      {isAdmin
+                        ? isYou
+                          ? "Step down as admin"
+                          : "Make member"
+                        : "Make admin"}
+                    </button>
+                  </form>
+                )}
+              </li>
+            );
+          })}
+        </ul>
       </section>
     </div>
   );
