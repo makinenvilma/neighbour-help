@@ -87,12 +87,39 @@ account an admin.
 `getCommunityForMember` returns the caller's `role` alongside the community.
 Admin-only pages and actions go through `getCommunityForAdmin` instead, which
 returns null for plain members as well as non-members, so callers handle both
-the same way (a 404). Nothing uses it yet: the first admin features are the
-join requests and join code.
+the same way (a 404). Nothing uses it yet: the first admin features are
+approving join requests and managing the join code (see Joining below).
+
+## Joining
+
+A community is joined through its join link, `/join/<joinCode>`, which admins
+will print as a QR code. Opening it does not make anyone a member: it lets a
+signed-in user send a **join request** with their apartment, and an admin
+approves it. So the code is a way to *ask*, and leaking it - it hangs in a
+stairwell - lets strangers ask, not get in.
+
+A signed-out visitor sees the community's name and is pointed at creating an
+account first (most people arriving from a QR code have none), with signing in
+as the second choice; both come back to the join page through `?next=`.
+Showing the name reveals nothing new - anyone with the code could sign up and
+see it. `getJoinCommunityName` selects only the name for this.
+
+Signed in, `getJoinTarget(code, userId)` in `src/lib/join.ts` resolves the code
+and tells the page where the user stands: already a member (sent to the community),
+waiting (told so), rejected or new (shown the form). It selects only the
+community's name and slug, the one thing a code holder may see before
+approval. An unknown or rotated code is a 404 with its own message.
+
+`requestToJoin` checks everything again, like every action: signed in, the
+code still valid, not already a member. It upserts on the unique
+`(userId, communityId)` pair, so asking again after a rejection reopens the
+same request.
+
+Approving requests, and showing and rotating the code, are the admin view -
+not built yet. Until then a request can only be approved in the database.
 
 ## Not built yet
 
-- **Invitations.** There is no way to join a community from the app.
 - **Row-level security.** The database does not enforce any of this itself.
   Postgres row-level security would make it refuse cross-tenant reads even if
   application code got a filter wrong. Worth adding before the first paying

@@ -22,19 +22,18 @@ export default async function CommunityIndex() {
             Notice boards
           </h1>
           <p className="mt-3 max-w-xl opacity-90">
-            Every community has its own board. These are the ones you belong
-            to.
+            Every community has its own board. These are the ones you belong to.
           </p>
         </section>
 
         {communities.length === 0 ? (
           <section className="rounded-lg border border-border bg-card p-6">
             <h2 className="text-lg font-bold">No communities yet</h2>
-            {/* There is no way to join one from the app yet - invitations come
-                next. Until then memberships are made by the seed. */}
+            {/* Joining starts outside the app, from a community's join link
+                or QR code, so all this page can do is say where to get one. */}
             <p className="mt-2 text-sm text-muted-foreground">
-              You are not a member of any community yet. Ask someone in yours to
-              invite you.
+              You are not a member of any community yet. Ask someone in yours
+              for its join link or QR code.
             </p>
           </section>
         ) : (

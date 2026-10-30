@@ -18,7 +18,8 @@ memberships; see [Tenancy and access](tenancy-and-access.md).
 | `src/app/(auth)/AuthForm.tsx` | The sign-in and sign-up form, one component for both |
 
 In pages and actions, use `requireUser()` when a user is required (it redirects
-to `/login` otherwise) and `getCurrentUser()` when being signed out is fine.
+to `/login` otherwise; pass a path to come back to it after signing in) and
+`getCurrentUser()` when being signed out is fine.
 Nothing outside `lib/auth.ts` should call `readSession` directly.
 
 ## Passwords
@@ -115,6 +116,20 @@ Two details keep it from revealing which emails have accounts:
 Sign-up *does* say "There is already an account with that email", which reveals
 the same thing. That is the usual trade-off; closing it needs email
 verification, which is not built yet.
+
+**Coming back after signing in.** `requireUser(returnTo)` sends a signed-out
+visitor to `/login?next=<returnTo>`. The sign-in and sign-up pages put `next` in
+a hidden field (and keep it on the link between them), and both actions
+redirect there instead of `/`. Only pages people open from outside pass a
+`returnTo` - today the join link, `/join/[code]`.
+
+`next` is attacker-controlled: anyone can send a link to
+`/login?next=https://evil.example`. Redirecting to it as is would be an *open
+redirect*, a genuine Koto sign-in that hands the user on to a look-alike page.
+`safeNextPath` in `src/lib/auth.ts` resolves it the way a browser would and only
+accepts it if it stays on this site; anything else becomes `/`. A plain "starts
+with `/`" check is not enough, since browsers read `//evil.example` and
+`/\evil.example` as another host.
 
 **Sign-out** is a `<form>` with a button, not a link. Signing out changes state
 on the server, and browsers and crawlers fetch links ahead of time; a GET link

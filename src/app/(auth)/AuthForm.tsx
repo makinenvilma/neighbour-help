@@ -14,8 +14,17 @@ const inputClasses =
  * A plain <form action> rather than onSubmit + fetch: useActionState hands the
  * action's return value back as `state`, and the form still submits if the
  * JavaScript has not loaded yet.
+ *
+ * `next` is where to go after signing in, passed through untouched: the action
+ * checks it, since a hidden field is as editable as the URL it came from.
  */
-export default function AuthForm({ mode }: { mode: "signin" | "signup" }) {
+export default function AuthForm({
+  mode,
+  next,
+}: {
+  mode: "signin" | "signup";
+  next?: string;
+}) {
   const signup = mode === "signup";
   const [state, formAction, pending] = useActionState<AuthFormState, FormData>(
     signup ? signUp : signIn,
@@ -36,6 +45,8 @@ export default function AuthForm({ mode }: { mode: "signin" | "signup" }) {
         action={formAction}
         className="mt-6 space-y-5"
       >
+        {next && <input type="hidden" name="next" value={next} />}
+
         {signup && (
           <div>
             <label htmlFor="name" className="text-sm font-medium">
@@ -108,7 +119,9 @@ export default function AuthForm({ mode }: { mode: "signin" | "signup" }) {
       <p className="mt-6 text-center text-sm text-muted-foreground">
         {signup ? "Already have an account? " : "New here? "}
         <Link
-          href={signup ? "/login" : "/signup"}
+          // Switching forms keeps `next`, so someone who arrived from a join
+          // link and has no account yet still ends up back there.
+          href={`${signup ? "/login" : "/signup"}${next ? `?next=${encodeURIComponent(next)}` : ""}`}
           className="font-medium text-primary hover:underline"
         >
           {signup ? "Sign in" : "Create an account"}

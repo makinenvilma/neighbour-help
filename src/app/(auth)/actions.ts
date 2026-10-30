@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/password";
+import { safeNextPath } from "@/lib/auth";
 import { createSession, deleteSession } from "@/lib/session";
 
 /**
@@ -73,7 +74,7 @@ export async function signUp(
 
   await createSession(userId);
   // redirect() works by throwing, so it stays outside the try above.
-  redirect("/");
+  redirect(safeNextPath(field(formData, "next")));
 }
 
 /**
@@ -108,7 +109,7 @@ export async function signIn(
   }
 
   await createSession(user.id);
-  redirect("/");
+  redirect(safeNextPath(field(formData, "next")));
 }
 
 export async function signOut() {
