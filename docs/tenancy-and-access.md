@@ -82,8 +82,13 @@ Without a cookie, it redirects to `/login`.
 ## Roles
 
 `Membership.role` is `member` or `admin`. The seed makes the "Maintenance"
-account an admin. **Nothing checks the role yet**: today every member can do
-everything a member can do, and there is nothing extra for admins to do.
+account an admin.
+
+`getCommunityForMember` returns the caller's `role` alongside the community.
+Admin-only pages and actions go through `getCommunityForAdmin` instead, which
+returns null for plain members as well as non-members, so callers handle both
+the same way (a 404). Nothing uses it yet: the first admin features are the
+join requests and join code.
 
 ## Not built yet
 

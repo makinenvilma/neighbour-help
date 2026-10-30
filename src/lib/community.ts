@@ -16,17 +16,39 @@ import { requireUser } from "@/lib/auth";
  * pages and actions must come through here rather than querying by slug
  * themselves. Wrapped in `cache` so the layout and the page it wraps share one
  * query instead of asking the database the same thing twice per request.
+ *
+ * `role` is the signed-in user's role in this community, fetched in the same
+ * query so checking it costs nothing extra.
  */
 export const getCommunityForMember = cache(async (slug: string) => {
   const user = await requireUser();
-  return prisma.community.findFirst({
+  const community = await prisma.community.findFirst({
     where: { slug, memberships: { some: { userId: user.id } } },
     include: {
       infoItems: { orderBy: { sortOrder: "asc" } },
       _count: { select: { memberships: true } },
+      memberships: { where: { userId: user.id }, select: { role: true } },
     },
   });
+  if (!community) return null;
+
+  // The where clause above guarantees exactly one membership row here.
+  const { memberships, ...rest } = community;
+  return { ...rest, role: memberships[0].role };
 });
+
+/**
+ * Like `getCommunityForMember`, but only for the community's admins. Returns
+ * null for a plain member too, so admin pages and actions treat "not an admin"
+ * exactly like "not a member" and never act on the caller's behalf.
+ *
+ * Admin-only pages and actions must come through here; checking `role` by hand
+ * in each one is how a check gets forgotten.
+ */
+export async function getCommunityForAdmin(slug: string) {
+  const community = await getCommunityForMember(slug);
+  return community?.role === "admin" ? community : null;
+}
 
 /**
  * The communities `userId` belongs to, for the index at `/`.
