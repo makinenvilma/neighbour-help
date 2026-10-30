@@ -182,6 +182,16 @@ waiting (told so), rejected or new (shown the form). It selects only the
 community's name and slug, the one thing a code holder may see before
 approval. An unknown or rotated code is a 404 with its own message.
 
+Signed-in users can also get there from `/` ("Join a community"), by pasting
+the link or typing the code - for a link that arrived on another device or
+was read out to them. `goToJoinPage` only pulls the code out of what was
+pasted and redirects to `/join/<code>`; it does not look the code up, so it is
+no faster a way to test codes than the join page itself. It accepts only
+letters and digits, since the code ends up in a URL path. There is
+deliberately **no search or list of communities** to join: that would list
+every customer to anyone, and the code is how a community decides who may
+ask.
+
 `requestToJoin` checks everything again, like every action: signed in, the
 code still valid, not already a member. It upserts on the unique
 `(userId, communityId)` pair, so asking again after a rejection reopens the
