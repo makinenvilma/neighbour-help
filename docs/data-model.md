@@ -41,7 +41,7 @@ erDiagram
         string id PK "cuid"
         string userId FK
         string communityId FK
-        string apartment "free text, e.g. A 12"
+        string note "free text: who they say they are"
         enum status "pending | approved | rejected"
     }
     CommunityInfo {
@@ -133,6 +133,7 @@ by hand, because Prisma's generated SQL would have lost or mangled data:
 | `rename_building_to_community` | Prisma would have dropped and recreated the tables. Written as renames. |
 | `notice_cuid` | Prisma would have cast ids to text (`"13"`), keeping them guessable. Gives each row a new random id. |
 | `notice_author_user` | Prisma would have added a required column that fails on existing rows and dropped the author names. Backfills `authorId` by matching names to members of the same community, and fails rather than guess when one does not match. |
+| `join_request_note` | Prisma would have dropped `apartment` and added `note`, losing every request's text. Written as a rename. |
 
 The rule of thumb: generate the SQL, then **read it** before applying it. If it
 drops a column or table that holds data you want, write the migration yourself.

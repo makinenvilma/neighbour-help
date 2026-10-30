@@ -35,7 +35,7 @@ export function getPendingJoinRequests(communityId: string) {
     orderBy: { createdAt: "asc" },
     select: {
       id: true,
-      apartment: true,
+      note: true,
       createdAt: true,
       // Name and email so the admin can tell who this is. Nothing else about
       // the user is the admin's business.

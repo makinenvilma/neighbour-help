@@ -7,12 +7,12 @@ import { getJoinTarget } from "@/lib/join";
 
 export type JoinFormState = {
   error?: string;
-  apartment?: string;
+  note?: string;
 };
 
-// Enough for "Building B, staircase 2, apartment 34"; an unbounded field would
-// let anyone put a novel in front of the admins.
-const MAX_APARTMENT = 50;
+// Enough for a sentence like "Second floor, the one with the dog"; an
+// unbounded field would let anyone put a novel in front of the admins.
+const MAX_NOTE = 100;
 
 /**
  * Ask to join the community whose join code is `code`. `code` is bound in by
@@ -26,19 +26,16 @@ export async function requestToJoin(
 ): Promise<JoinFormState> {
   const user = await requireUser(`/join/${encodeURIComponent(code)}`);
 
-  const value = formData.get("apartment");
-  const apartment = typeof value === "string" ? value.trim() : "";
-  if (!apartment) return { error: "Tell the admins which apartment is yours." };
-  if (apartment.length > MAX_APARTMENT)
-    return {
-      apartment,
-      error: "That is too long. Just the apartment will do.",
-    };
+  const value = formData.get("note");
+  const note = typeof value === "string" ? value.trim() : "";
+  if (!note) return { error: "Tell the admins who you are." };
+  if (note.length > MAX_NOTE)
+    return { note, error: "That is too long. A few words will do." };
 
   const community = await getJoinTarget(code, user.id);
   if (!community) {
     return {
-      apartment,
+      note,
       error: "This join link no longer works. Ask for the new one.",
     };
   }
@@ -53,8 +50,8 @@ export async function requestToJoin(
     where: {
       userId_communityId: { userId: user.id, communityId: community.id },
     },
-    create: { userId: user.id, communityId: community.id, apartment },
-    update: { apartment, status: "pending" },
+    create: { userId: user.id, communityId: community.id, note },
+    update: { note, status: "pending" },
   });
 
   // Back to the same page, which now finds the pending request and says so.

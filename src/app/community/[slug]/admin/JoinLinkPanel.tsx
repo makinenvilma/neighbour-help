@@ -48,8 +48,8 @@ export default function JoinLinkPanel({
 
       <div className="min-w-0 flex-1 space-y-4">
         <p className="text-muted-foreground">
-          Put the QR code up in the stairwell, or send the link to new
-          residents. Opening it lets someone ask to join - you still approve
+          Put the QR code up where members will see it, or send them the
+          link. Opening it lets someone ask to join - you still approve
           every request here.
         </p>
 

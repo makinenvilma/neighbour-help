@@ -82,7 +82,7 @@ export default async function AdminPage({
                   <p className="font-medium">
                     {request.user.name}{" "}
                     <span className="text-muted-foreground">
-                      - {request.apartment}
+                      - {request.note}
                     </span>
                   </p>
                   <p className="truncate text-sm text-muted-foreground">

@@ -21,19 +21,19 @@ export default function JoinForm({
     // `key` refills the field after a failed attempt, as in AuthForm.
     <form key={JSON.stringify(state)} action={formAction} className="space-y-5">
       <div>
-        <label htmlFor="apartment" className="text-sm font-medium">
-          Your apartment
+        <label htmlFor="note" className="text-sm font-medium">
+          Who are you?
         </label>
-        <p id="apartment-hint" className="mt-1 text-sm text-muted-foreground">
-          So the admins know who you are, for example A 12.
+        <p id="note-hint" className="mt-1 text-sm text-muted-foreground">
+          So the admins know you, for example your apartment, team or role.
         </p>
         <input
-          id="apartment"
-          name="apartment"
+          id="note"
+          name="note"
           required
-          maxLength={50}
-          aria-describedby="apartment-hint"
-          defaultValue={state.apartment}
+          maxLength={100}
+          aria-describedby="note-hint"
+          defaultValue={state.note}
           className={inputClasses}
         />
       </div>

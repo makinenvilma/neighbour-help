@@ -119,9 +119,9 @@ list the 404s are careful not to give away. A clash on the suffix is retried.
 
 A community is joined through its join link, `/join/<joinCode>`, which admins
 will print as a QR code. Opening it does not make anyone a member: it lets a
-signed-in user send a **join request** with their apartment, and an admin
-approves it. So the code is a way to *ask*, and leaking it - it hangs in a
-stairwell - lets strangers ask, not get in.
+signed-in user send a **join request** saying who they are, and an admin
+approves it. So the code is a way to *ask*, and leaking it - it is meant to
+hang where anyone can see it - lets strangers ask, not get in.
 
 A signed-out visitor sees the community's name and is pointed at creating an
 account first (most people arriving from a QR code have none), with signing in
