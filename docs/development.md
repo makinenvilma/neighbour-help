@@ -46,6 +46,17 @@ are only added to a board that has none.
 To see what a non-member sees, sign up with a new account. It belongs to no
 community, and `/community/maple-street` is a 404 for it.
 
+As `maintenance@maple-street.example`, the admin page is
+`/community/maple-street/admin`. It shows the join link and QR code, so to try
+joining, open that link in a private window and sign up. Opened at the
+machine's network address (`http://<ip>:3000/...`) instead of `localhost`, the
+QR code works from a phone on the same network. "Make a new link" there turns
+the old code off.
+
+To make another account an admin, use "Make admin" on the admin page. A
+community always keeps at least one admin, so the last one cannot step down,
+be removed or leave.
+
 ## Commands
 
 | Command | Does |
@@ -117,6 +128,16 @@ Cmd + Shift + R in Chrome and Firefox, **Cmd + Option + R** in Safari, where
 Cmd + Shift + R does something else. If that is not enough, restart the dev
 server and reload again. Check that the class is really missing first: if
 `curl` on the page's CSS file finds it, the server is fine and the cache is not.
+
+**Comparing `createdAt` with `now()` in SQL.** Prisma stores `DateTime` as
+`timestamp without time zone` holding UTC, but `now()` is in the session's time
+zone. In psql on a machine at UTC+2, `"createdAt" > now() - interval '10
+minutes'` matches nothing that was just created. Compare with
+`now() at time zone 'utc'` instead.
+
+**A helper exported from a `"use server"` file is an endpoint.** Anyone can call
+it with any arguments. Put shared helpers in `src/lib/` and export only real
+actions from `actions.ts` files.
 
 **Testing in a browser:** the sidebar's Sign out button is a submit button and
 comes before `<main>` in the page. A test that clicks `button[type=submit]`

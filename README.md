@@ -30,13 +30,17 @@ Working right now:
 - Community name, member count and the "Good to know" rows come from the
   database, so every community renders its own
 - Responsive shell: a sidebar from 768px up, bottom tabs below it
+- Create a community at `/communities/new`; you become its admin
+- Join through a community's link or QR code (`/join/<code>`), or paste the
+  link at `/communities/join`. An admin approves each request
+- Admin page at `/community/[slug]/admin`: join link and QR code, join
+  requests, members and their roles, removing members
+- Leave a community from its home page. A community always keeps an admin
 
 Not done yet:
 
-- No way to join a community from the app. A new account belongs to nothing
-  until invitations exist; for now memberships come from the seed.
 - No email verification, password reset or rate limiting on sign-in.
-- Roles are stored (`member`, `admin`) but nothing checks them yet.
+- Admins cannot remove other people's notices yet.
 - The "Comment" buttons do not do anything yet.
 
 ## Tech
@@ -67,15 +71,18 @@ Being signed in says who you are; a `Membership` row says which communities you
 may see. `getCommunityForMember(slug)` in `src/lib/community.ts` checks both and is
 the one way pages and actions resolve a community. Each page and action calls it
 itself - a check in the layout alone is not enough, because Next.js renders a
-layout and its page independently.
+layout and its page independently. Admin pages and actions go through
+`getCommunityForAdmin(slug)` instead, which treats a plain member like a
+non-member.
 
 There is no `middleware.ts`. It could redirect signed-out visitors earlier, but
 it cannot replace the per-page check, and a second place for the same rule is a
 second place for it to be wrong.
 
-Reads go through `src/lib/queries.ts` from server components. Writes go through the
-server action in `src/app/community/[slug]/new/actions.ts`, which re-validates the
-input before touching the database and then revalidates that community's pages.
+Reads go through `src/lib/` from server components. Writes go through server
+actions (`actions.ts` next to the page that uses them), each of which checks who
+is calling and re-validates its input before touching the database - a server
+action is a public endpoint, whatever page renders its form.
 
 ### The tenant boundary
 
@@ -151,7 +158,7 @@ server keeps the old client in memory, so restart it too.
 
 ```
 prisma/
-  schema.prisma            Community, CommunityInfo, Notice, User, Session, Membership
+  schema.prisma            Community, CommunityInfo, Notice, User, Session, Membership, JoinRequest
   migrations/              generated SQL, committed
   seed.ts                  one community, its members and example notices
 prisma.config.ts           schema path, migrations path, seed command, datasource URL
@@ -167,6 +174,12 @@ src/
       new/page.tsx         server component, resolves the community
       new/NewNoticeForm.tsx the form itself, a client component
       new/actions.ts       createNotice server action
+      actions.ts           leaveCommunity
+      admin/               join link + QR, join requests, members (admins only)
+    communities/
+      new/                 create a community
+      join/                paste a join link or code
+    join/[code]/           where join links and QR codes lead
   components/
     AppShell.tsx           sidebar + main column, picks the nav for the width
     Sidebar.tsx            desktop sidebar, hidden below md
@@ -176,12 +189,15 @@ src/
     CommunitySwitcher.tsx  mobile menu for moving between your communities
     AccountMenu.tsx        mobile menu with the signed-in user and sign out
     SignOutButton.tsx      sign-out form, used by the sidebar and account menu
+    ConfirmButton.tsx      submit button that asks "are you sure?" first
   lib/
     db.ts                  Prisma client singleton
     auth.ts                getCurrentUser, requireUser
     session.ts             database sessions and the session cookie
     password.ts            scrypt password hashing
-    community.ts           community lookups, including the membership check
+    community.ts           community lookups, the membership and admin checks,
+                           members, the admin-change lock
+    join.ts                join code lookups and join requests
     queries.ts             read queries, all scoped by communityId
     notices.ts             category labels, badge styles, date formatting
   generated/prisma         generated Prisma client (gitignored)
@@ -190,9 +206,10 @@ src/
 
 ## Next up
 
-1. Invitations, so a new account can join a community
-2. Use the roles: admins manage members and can remove notices
-3. Rate limiting on sign-in, email verification and password reset
+1. Rate limiting on sign-in, email verification and password reset
+2. Clean results instead of 500s for unauthorised action calls
+3. Admins removing notices
 4. Postgres row-level security, so the database enforces the tenant boundary
    even if application code gets it wrong
 5. Comments
+6. Next.js 16 and the ESLint CLI in place of `next lint`

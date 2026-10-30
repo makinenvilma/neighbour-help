@@ -19,8 +19,9 @@ Desktop (md and up)                 Mobile (below md)
 │ MAPLE ST │                     │  │                         │
 │ Home     │                     │  │                         │
 │ Board    │                     │  ├─────────────────────────┤
-│ New      │                     │  │  Home  Notices   New    │  BottomTabs
-│ ──────── │                     │  └─────────────────────────┘
+│ New      │                     │  │ Home Notices New Admin  │  BottomTabs
+│ Admin    │                     │  └─────────────────────────┘
+│ ──────── │                     │
 │ Mary Ex. │                     │
 │ Sign out │                     │
 └──────────┴─────────────────────┘
@@ -30,12 +31,17 @@ Desktop (md and up)                 Mobile (below md)
 | Component | Shown | Job |
 | --- | --- | --- |
 | `Sidebar.tsx` | `md` and up | Product name, `NavLinks`, signed-in user and Sign out at the bottom |
-| `NavLinks.tsx` | Inside the sidebar | "Communities", then the current community's Home, Notice Board and New Notice |
+| `NavLinks.tsx` | Inside the sidebar | "Communities", then the current community's Home, Notice Board, New Notice, and Admin for admins |
 | `MobileTopBar.tsx` | Below `md` | Product name, the community switcher centred, and the account menu |
 | `CommunitySwitcher.tsx` | Mobile top bar, inside a community | The community's name as a menu: your other communities, and All communities |
 | `AccountMenu.tsx` | Mobile top bar | Initials button opening the signed-in user's name and email, and Sign out |
-| `BottomTabs.tsx` | Below `md`, inside a community | Home, Notices, New, one tap away; the current one highlighted |
+| `BottomTabs.tsx` | Below `md`, inside a community | Home, Notices, New (and Admin for admins), one tap away; the current one highlighted |
 | `SignOutButton.tsx` | Sidebar; the account menu | A form that calls `signOut` |
+| `ConfirmButton.tsx` | Admin page; community home | A submit button that asks "are you sure?" before running an action that cannot be undone. A guard against slips, not a security check |
+
+The Admin link and tab are shown only when the community passed to the shell has
+`isAdmin` set. Hiding them is convenience: the admin page checks the role
+itself.
 
 ### Mobile details
 

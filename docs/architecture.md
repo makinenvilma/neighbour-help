@@ -52,13 +52,19 @@ src/
   app/                       routes (see routes.md)
     (auth)/                  /login and /signup, their layout and actions
     community/[slug]/        everything inside one community
-  components/                shared UI: AppShell, Sidebar, BottomTabs, ...
+      admin/                 the admin page and its actions
+    communities/new/         creating a community
+    communities/join/        pasting a join link or code
+    join/[code]/             where join links and QR codes lead
+  components/                shared UI: AppShell, Sidebar, BottomTabs, ConfirmButton, ...
   lib/
     db.ts                    the Prisma client singleton
     password.ts              scrypt hashing
     session.ts               database sessions and the cookie
     auth.ts                  getCurrentUser, requireUser
-    community.ts             community lookups, including the membership check
+    community.ts             community lookups, the membership and admin checks,
+                             members, lockCommunity / isLastAdmin
+    join.ts                  join code lookups and join requests
     queries.ts               notice reads, all scoped by communityId
     notices.ts               category labels, badge styles, date formatting
   generated/prisma/          generated Prisma client (gitignored)
@@ -76,6 +82,12 @@ src/
 - **Per-request caching with React `cache`.** `getCurrentUser`,
   `getCommunityForMember` and `getNotice` are wrapped in it, so a layout, a page
   and `generateMetadata` asking the same question share one query.
+- **Every export of a `"use server"` file is a public endpoint.** Server actions
+  live in `actions.ts` files marked `"use server"`, and anyone can call any
+  function those files export, with any arguments. So each action checks who is
+  calling and re-validates everything it is given, and helpers that are not
+  meant to be called from outside (`lockCommunity`, `isLastAdmin`) live in
+  `lib/`, never exported from an actions file.
 - **Comments explain why.** The code is commented heavily with the reasoning
   behind each decision. Read them before changing something that looks odd.
 
