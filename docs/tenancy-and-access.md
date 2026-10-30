@@ -81,8 +81,12 @@ Without a cookie, it redirects to `/login`.
 
 ## Roles
 
-`Membership.role` is `member` or `admin`. The seed makes the "Maintenance"
-account an admin.
+`Membership.role` is `member` or `admin`, and it belongs to the membership, not
+the user: the same person can be an admin in one community and a member in
+another. A membership is `member` unless something says otherwise. Exactly two
+things do: creating a community makes its creator an admin, and the seed makes
+the "Maintenance" account one. Approving a join request never does, so a join
+link can never hand out admin rights.
 
 `getCommunityForMember` returns the caller's `role` alongside the community.
 Admin-only pages and actions go through `getCommunityForAdmin` instead, which
@@ -93,6 +97,23 @@ actions use it.
 The Admin link in the navigation is shown only to admins (`isAdmin` on the
 navigation's community). That is convenience, not protection: the page and the
 actions check the role themselves, and a member who types the URL gets a 404.
+
+## Creating a community
+
+Any signed-in user can create one at `/communities/new` and becomes its first
+admin. Who *should* be allowed to - everyone, paying customers, accounts the
+operator approved - is a business decision not made yet; every answer to it
+needs this part.
+
+`createCommunity` creates the community and the admin membership in one
+statement (a nested create), so a community without an admin - one nobody
+could ever manage - cannot exist even briefly.
+
+The slug is the name made URL-safe plus a random suffix, e.g.
+`maple-street-k3f9`, and the suffix is **always** added, not only when the
+plain slug is taken. Adding it only on a clash would tell anyone who tries to
+create "Maple Street" that a community of that name exists - the same customer
+list the 404s are careful not to give away. A clash on the suffix is retried.
 
 ## Joining
 

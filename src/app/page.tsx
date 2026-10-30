@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Users, UsersRound } from "lucide-react";
+import { ArrowRight, Plus, Users, UsersRound } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { requireUser } from "@/lib/auth";
 import { getCommunitiesForUser } from "@/lib/community";
@@ -24,6 +24,14 @@ export default async function CommunityIndex() {
           <p className="mt-3 max-w-xl opacity-90">
             Every community has its own board. These are the ones you belong to.
           </p>
+          <div className="mt-6">
+            <Link
+              href="/communities/new"
+              className="inline-flex items-center gap-2 rounded-full bg-card px-5 py-2.5 font-medium text-card-foreground transition-transform duration-200 hover:scale-105"
+            >
+              <Plus className="h-4 w-4" /> Create a community
+            </Link>
+          </div>
         </section>
 
         {communities.length === 0 ? (
@@ -33,7 +41,14 @@ export default async function CommunityIndex() {
                 or QR code, so all this page can do is say where to get one. */}
             <p className="mt-2 text-sm text-muted-foreground">
               You are not a member of any community yet. Ask someone in yours
-              for its join link or QR code.
+              for its join link or QR code, or{" "}
+              <Link
+                href="/communities/new"
+                className="font-medium text-primary hover:underline"
+              >
+                create a new one
+              </Link>
+              .
             </p>
           </section>
         ) : (
