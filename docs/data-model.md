@@ -1,6 +1,6 @@
 # Data model
 
-Six tables. `Community` is the tenant; everything that belongs to one carries
+Seven tables. `Community` is the tenant; everything that belongs to one carries
 its `communityId`. `User` is global, so one person can belong to several
 communities through `Membership`.
 
@@ -11,6 +11,8 @@ erDiagram
     Community ||--o{ Membership : has
     Community ||--o{ Notice : has
     Community ||--o{ CommunityInfo : has
+    User ||--o{ JoinRequest : made
+    Community ||--o{ JoinRequest : has
     User ||--o{ Notice : wrote
 
     User {
@@ -33,6 +35,14 @@ erDiagram
         string id PK "cuid"
         string slug UK "used in URLs"
         string name
+        string joinCode UK "secret in the join link"
+    }
+    JoinRequest {
+        string id PK "cuid"
+        string userId FK
+        string communityId FK
+        string apartment "free text, e.g. A 12"
+        enum status "pending | approved | rejected"
     }
     CommunityInfo {
         string id PK "cuid"
@@ -52,7 +62,8 @@ erDiagram
     }
 ```
 
-Timestamps are left out of the diagram: `User`, `Community` and `Notice` have
+Timestamps are left out of the diagram: `User`, `Community`, `Notice` and
+`JoinRequest` have
 `createdAt` and `updatedAt`, `Session` and `Membership` only `createdAt`, and
 `CommunityInfo` neither. The schema itself is
 in [`prisma/schema.prisma`](../prisma/schema.prisma), commented model by model.
@@ -67,6 +78,7 @@ in [`prisma/schema.prisma`](../prisma/schema.prisma), commented model by model.
 | `User` | A person with a login | Global, not per community. |
 | `Session` | One signed-in browser | Deleting the row signs that browser out. |
 | `Membership` | A user belonging to a community | What authorisation checks. Primary key is the pair. |
+| `JoinRequest` | Someone asking to join through the join link | Approving it creates the `Membership`. Unique per user and community. |
 
 ## Design decisions
 
@@ -88,8 +100,20 @@ be a member of the same community twice, and the key's index (starting with
 `userId`) serves "my communities". A second index on `communityId` serves
 "members of this community".
 
-**Cascades.** Deleting a community deletes its notices, info rows and
-memberships. Deleting a user deletes their sessions, memberships and notices.
+**`Community.joinCode` is stored as is, not hashed.** It is the secret in the
+join link and QR code, but knowing it only lets someone *ask* to join - an
+admin approves every request. Admins need to see it again to reprint the QR
+code, which a hash would make impossible. Rotating it kills old links. Postgres
+generates it (`gen_random_uuid()`, 122 random bits), which is also how the
+migration gave existing communities one each.
+
+**One `JoinRequest` per user and community.** Asking again after a rejection
+reuses the row, so the admin's list never fills with duplicates. Approved and
+rejected rows stay as the record of who joined how.
+
+**Cascades.** Deleting a community deletes its notices, info rows,
+memberships and join requests. Deleting a user deletes their sessions,
+memberships, join requests and notices.
 Keeping a deleted user's notices under "deleted user" would need an optional
 relation; that is a product decision for when account deletion exists.
 
