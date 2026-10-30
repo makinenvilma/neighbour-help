@@ -8,6 +8,8 @@ import {
   Info,
   Megaphone,
   Phone,
+  LogOut,
+  Shield,
   Shirt,
   Trash2,
   Users,
@@ -15,8 +17,10 @@ import {
 } from "lucide-react";
 import { formatNoticeDate } from "@/lib/notices";
 import { getNoticeCounts, getNotices } from "@/lib/queries";
-import { getCommunityForMember } from "@/lib/community";
+import { countAdmins, getCommunityForMember } from "@/lib/community";
+import ConfirmButton from "@/components/ConfirmButton";
 import NoticeCard from "@/components/NoticeCard";
+import { leaveCommunity } from "./actions";
 
 // CommunityInfo.icon is a key, not a component name - communities pick from
 // this set rather than naming anything the bundle has to resolve at runtime.
@@ -46,11 +50,14 @@ export default async function CommunityHome({
   // Three narrow queries in parallel rather than one wide one: the page shows
   // at most eight notices, so fetching the whole board to slice it would grow
   // unboundedly for output that never does.
-  const [latest, helpRequests, counts] = await Promise.all([
+  const [latest, helpRequests, counts, adminCount] = await Promise.all([
     getNotices(community.id, { take: LATEST_LIMIT }),
     getNotices(community.id, { category: "help", take: HELP_LIMIT }),
     getNoticeCounts(community.id),
+    // Only an admin's page needs it, to say whether they may leave.
+    community.role === "admin" ? countAdmins(community.id) : null,
   ]);
+  const isOnlyAdmin = adminCount === 1;
 
   const stats = [
     { icon: Megaphone, value: counts.total, label: "Active notices" },
@@ -177,6 +184,40 @@ export default async function CommunityHome({
             </ul>
           </section>
 
+          <section className="rounded-lg border border-border bg-card p-6">
+            <h2 className="text-lg font-bold">Your membership</h2>
+            {isOnlyAdmin ? (
+              // The action refuses this too; saying why is kinder than a
+              // button that does nothing.
+              <p className="mt-2 text-sm text-muted-foreground">
+                You are the only admin of {community.name}, so you cannot leave
+                yet.{" "}
+                <Link
+                  href={`/community/${community.slug}/admin`}
+                  className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+                >
+                  <Shield className="h-4 w-4" /> Make someone else an admin
+                </Link>{" "}
+                first.
+              </p>
+            ) : (
+              <>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  You are {community.role === "admin" ? "an admin" : "a member"}{" "}
+                  of {community.name}.
+                </p>
+                <div className="mt-4">
+                  <ConfirmButton
+                    action={leaveCommunity.bind(null, community.slug)}
+                    question={`Leave ${community.name}? You lose access straight away. To come back, you ask to join again.`}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium text-destructive hover:bg-muted"
+                  >
+                    <LogOut className="h-4 w-4" /> Leave {community.name}
+                  </ConfirmButton>
+                </div>
+              </>
+            )}
+          </section>
         </div>
       </div>
     </div>

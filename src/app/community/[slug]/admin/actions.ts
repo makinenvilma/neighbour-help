@@ -3,10 +3,14 @@
 import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { MembershipRole, Prisma } from "@/generated/prisma/client";
+import type { MembershipRole } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
-import { getCommunityForAdmin } from "@/lib/community";
+import {
+  getCommunityForAdmin,
+  isLastAdmin,
+  lockCommunity,
+} from "@/lib/community";
 
 /**
  * Every action here takes the slug (and the request id) from the page, and
@@ -84,19 +88,6 @@ export async function rotateJoinCode(slug: string) {
 }
 
 /**
- * Lock the community's row until the transaction `tx` ends, so changes to who
- * its admins are happen one at a time.
- *
- * Every check of "is there another admin?" needs this. Two admins demoting or
- * removing each other at the same moment would otherwise both count two
- * admins, both go ahead, and leave none. With the lock, the second waits,
- * then counts one and stops.
- */
-async function lockCommunity(tx: Prisma.TransactionClient, communityId: string) {
-  await tx.$queryRaw`SELECT id FROM "Community" WHERE id = ${communityId} FOR UPDATE`;
-}
-
-/**
  * Make `userId` an admin or a plain member of the community.
  *
  * The one rule: a community always keeps at least one admin. Without one,
@@ -118,12 +109,8 @@ export async function setMemberRole(
 
   await prisma.$transaction(async (tx) => {
     await lockCommunity(tx, community.id);
-
-    if (role === "member") {
-      const admins = await tx.membership.count({
-        where: { communityId: community.id, role: "admin" },
-      });
-      if (admins <= 1) return;
+    if (role === "member" && (await isLastAdmin(tx, community.id, userId))) {
+      return;
     }
 
     // updateMany so the community id is part of the match: a userId from
@@ -162,25 +149,14 @@ export async function removeMember(slug: string, userId: string) {
 
   await prisma.$transaction(async (tx) => {
     await lockCommunity(tx, community.id);
-
-    const membership = await tx.membership.findUnique({
-      where: { userId_communityId: { userId, communityId: community.id } },
-      select: { role: true },
-    });
-    if (!membership) return;
-
     // Looks unneeded - the caller is an admin and cannot remove themselves - but
     // the caller was checked before the lock. If another admin demoted them in
     // the meantime, the person being removed may be the last admin left.
-    if (membership.role === "admin") {
-      const admins = await tx.membership.count({
-        where: { communityId: community.id, role: "admin" },
-      });
-      if (admins <= 1) return;
-    }
+    if (await isLastAdmin(tx, community.id, userId)) return;
 
-    await tx.membership.delete({
-      where: { userId_communityId: { userId, communityId: community.id } },
+    // deleteMany: someone already gone is the goal reached, not an error.
+    await tx.membership.deleteMany({
+      where: { userId, communityId: community.id },
     });
   });
 

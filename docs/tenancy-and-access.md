@@ -104,8 +104,8 @@ last admin, and the action refuses it.
 
 Counting admins and then demoting is a race on its own: two admins demoting
 each other at the same moment both count two, both go ahead, and leave none.
-The action therefore locks the community row (`SELECT ... FOR UPDATE`) for the
-length of its transaction, so the second demotion waits, counts one, and stops.
+The action therefore locks the community row (`SELECT ... FOR UPDATE`, in
+`lockCommunity`) for the length of its transaction, so the second demotion waits, counts one, and stops.
 This was tested by firing both demotions at once: with the lock one admin
 always remains; with the lock removed, two runs out of three left none.
 
@@ -125,8 +125,21 @@ looks unneeded - the caller is an admin and cannot remove themselves - but the
 caller was checked before the lock: if another admin demoted them a moment
 earlier, the person being removed may be the last admin left.
 
-Admins cannot remove themselves here. Leaving a community is something every
-member should be able to do, so it belongs elsewhere - not built yet.
+Admins cannot remove themselves here; leaving is for every member, below.
+
+### Leaving
+
+Any member can leave from the community home page ("Your membership"), after a
+confirmation, and is sent to `/`. As with removal, their notices stay and they
+can ask to join again. The only admin cannot leave: the page says so and links
+to the admin page to make someone else an admin, and `leaveCommunity` refuses
+it under the same lock, in case the other admin stepped down in the meantime.
+
+`lockCommunity` and `isLastAdmin`, which the admin actions and
+`leaveCommunity` share, live in `src/lib/community.ts` rather than in either
+actions file. Every export of a `"use server"` file becomes an endpoint anyone
+can call, so helpers there must stay unexported - and a helper two files need
+has to be exported from somewhere.
 
 The Admin link in the navigation is shown only to admins (`isAdmin` on the
 navigation's community). That is convenience, not protection: the page and the

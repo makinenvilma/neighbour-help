@@ -1,4 +1,5 @@
 import { cache } from "react";
+import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 
@@ -95,6 +96,59 @@ export function getMembers(communityId: string) {
       user: { select: { id: true, name: true, email: true } },
     },
   });
+}
+
+/**
+ * How many admins `communityId` has, for pages deciding what to offer. Not for
+ * enforcing anything: outside a locked transaction it can be stale the moment
+ * it returns - see isLastAdmin for that.
+ */
+export function countAdmins(communityId: string) {
+  return prisma.membership.count({ where: { communityId, role: "admin" } });
+}
+
+/**
+ * Lock the community's row until the transaction `tx` ends, so changes to who
+ * its admins are happen one at a time.
+ *
+ * Every check of "is there another admin?" needs this. Two admins demoting or
+ * removing each other at the same moment would otherwise both count two
+ * admins, both go ahead, and leave none. With the lock, the second waits,
+ * then counts one and stops.
+ *
+ * Lives here rather than next to the actions that use it: everything exported
+ * from a "use server" file becomes an endpoint anyone can call.
+ */
+export async function lockCommunity(
+  tx: Prisma.TransactionClient,
+  communityId: string,
+) {
+  await tx.$queryRaw`SELECT id FROM "Community" WHERE id = ${communityId} FOR UPDATE`;
+}
+
+/**
+ * Whether `userId` is the community's only admin, so that demoting, removing
+ * or letting them leave would leave it with none - and nobody could ever let
+ * anyone in or make a new admin again.
+ *
+ * Only meaningful inside a transaction that has called lockCommunity first;
+ * without the lock the answer can be out of date by the time it is acted on.
+ */
+export async function isLastAdmin(
+  tx: Prisma.TransactionClient,
+  communityId: string,
+  userId: string,
+) {
+  const membership = await tx.membership.findUnique({
+    where: { userId_communityId: { userId, communityId } },
+    select: { role: true },
+  });
+  if (membership?.role !== "admin") return false;
+
+  const admins = await tx.membership.count({
+    where: { communityId, role: "admin" },
+  });
+  return admins <= 1;
 }
 
 export type CommunityWithInfo = NonNullable<

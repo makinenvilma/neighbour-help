@@ -13,7 +13,7 @@ import {
   rotateJoinCode,
   setMemberRole,
 } from "./actions";
-import ConfirmButton from "./ConfirmButton";
+import ConfirmButton from "@/components/ConfirmButton";
 import JoinLinkPanel from "./JoinLinkPanel";
 
 export const metadata = { title: "Admin - Koto" };

@@ -14,7 +14,7 @@ community's name with links to sign up or sign in, both carrying
 | `/` | Your communities with member counts | Signed in | `src/app/page.tsx` |
 | `/communities/new` | Form to create a community; you become its admin | Signed in | `src/app/communities/new/page.tsx` |
 | `/join/[code]` | Signed out: the community's name and links to sign up or in. Signed in: ask to join, or that your request is waiting | Nothing; members are sent to the community | `src/app/join/[code]/page.tsx` |
-| `/community/[slug]` | Community home: stats, latest 3 notices, up to 5 help requests, "Good to know" | Member | `src/app/community/[slug]/page.tsx` |
+| `/community/[slug]` | Community home: stats, latest 3 notices, up to 5 help requests, "Good to know", leaving the community | Member | `src/app/community/[slug]/page.tsx` |
 | `/community/[slug]/feed` | Every notice, newest first | Member | `src/app/community/[slug]/feed/page.tsx` |
 | `/community/[slug]/new` | Form for a new notice, with a live preview | Member | `src/app/community/[slug]/new/page.tsx` |
 | `/community/[slug]/notice/[id]` | One notice in full | Member, and the notice must belong to that community | `src/app/community/[slug]/notice/[id]/page.tsx` |
@@ -54,6 +54,7 @@ renders inside the layout with the navigation intact.
 | --- | --- | --- |
 | `signUp`, `signIn`, `signOut` | `src/app/(auth)/actions.ts` | The auth forms, and the sign-out button in the navigation |
 | `createNotice` | `src/app/community/[slug]/new/actions.ts` | The new notice form |
+| `leaveCommunity` | `src/app/community/[slug]/actions.ts` | "Leave" under "Your membership" on the community home page, after a confirmation |
 | `createCommunity` | `src/app/communities/new/actions.ts` | The create community form |
 | `requestToJoin` | `src/app/join/[code]/actions.ts` | The join form, with the code bound in by the page |
 | `approveJoinRequest`, `rejectJoinRequest` | `src/app/community/[slug]/admin/actions.ts` | The buttons on each request on the admin page |
