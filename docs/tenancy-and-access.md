@@ -112,6 +112,22 @@ always remains; with the lock removed, two runs out of three left none.
 An admin who steps down is sent to the community home rather than a 404 on the
 page they can no longer see.
 
+### Removing a member
+
+`removeMember` takes someone out of the community after a confirmation. They
+lose access on their very next request, even mid-session, because every page
+and action checks membership itself. Their notices stay on the board: they are
+the community's history, not part of the membership. They can still open the
+join link and ask again, and an admin decides.
+
+It uses the same lock and the same last-admin rule as role changes. That check
+looks unneeded - the caller is an admin and cannot remove themselves - but the
+caller was checked before the lock: if another admin demoted them a moment
+earlier, the person being removed may be the last admin left.
+
+Admins cannot remove themselves here. Leaving a community is something every
+member should be able to do, so it belongs elsewhere - not built yet.
+
 The Admin link in the navigation is shown only to admins (`isAdmin` on the
 navigation's community). That is convenience, not protection: the page and the
 actions check the role themselves, and a member who types the URL gets a 404.

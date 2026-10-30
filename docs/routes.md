@@ -57,5 +57,6 @@ renders inside the layout with the navigation intact.
 | `createCommunity` | `src/app/communities/new/actions.ts` | The create community form |
 | `requestToJoin` | `src/app/join/[code]/actions.ts` | The join form, with the code bound in by the page |
 | `approveJoinRequest`, `rejectJoinRequest` | `src/app/community/[slug]/admin/actions.ts` | The buttons on each request on the admin page |
+| `removeMember` | `src/app/community/[slug]/admin/actions.ts` | "Remove" in the member list, after a confirmation |
 | `setMemberRole` | `src/app/community/[slug]/admin/actions.ts` | "Make admin", "Make member" and "Step down as admin" in the member list |
 | `rotateJoinCode` | `src/app/community/[slug]/admin/actions.ts` | "Make a new link" on the admin page, after a confirmation |

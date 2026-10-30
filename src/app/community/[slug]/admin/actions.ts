@@ -3,7 +3,7 @@
 import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { MembershipRole } from "@/generated/prisma/client";
+import type { MembershipRole, Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { getCommunityForAdmin } from "@/lib/community";
@@ -84,6 +84,19 @@ export async function rotateJoinCode(slug: string) {
 }
 
 /**
+ * Lock the community's row until the transaction `tx` ends, so changes to who
+ * its admins are happen one at a time.
+ *
+ * Every check of "is there another admin?" needs this. Two admins demoting or
+ * removing each other at the same moment would otherwise both count two
+ * admins, both go ahead, and leave none. With the lock, the second waits,
+ * then counts one and stops.
+ */
+async function lockCommunity(tx: Prisma.TransactionClient, communityId: string) {
+  await tx.$queryRaw`SELECT id FROM "Community" WHERE id = ${communityId} FOR UPDATE`;
+}
+
+/**
  * Make `userId` an admin or a plain member of the community.
  *
  * The one rule: a community always keeps at least one admin. Without one,
@@ -104,11 +117,7 @@ export async function setMemberRole(
   let demotedSelf = false;
 
   await prisma.$transaction(async (tx) => {
-    // Lock the community row until this transaction ends. Two admins demoting
-    // each other at the same moment would otherwise both count two admins,
-    // both go ahead, and leave none. With the lock, the second waits, then
-    // counts one and stops.
-    await tx.$queryRaw`SELECT id FROM "Community" WHERE id = ${community.id} FOR UPDATE`;
+    await lockCommunity(tx, community.id);
 
     if (role === "member") {
       const admins = await tx.membership.count({
@@ -129,5 +138,51 @@ export async function setMemberRole(
   // Someone who just gave up their own admin role cannot see this page any
   // more; send them to the community instead of a 404.
   if (demotedSelf) redirect(`/community/${community.slug}`);
+  revalidatePath(`/community/${community.slug}/admin`);
+}
+
+/**
+ * Take `userId` out of the community - someone who moved away, left the club,
+ * or should not have been let in.
+ *
+ * They lose access on their next request, signed in or not: every community
+ * page and action checks membership itself. What they posted stays on the
+ * board under their name; the notices belong to the community's history, not
+ * to the membership.
+ *
+ * Not for removing yourself. Leaving is something every member should be able
+ * to do, not only admins, so it belongs on its own, not on this page.
+ */
+export async function removeMember(slug: string, userId: string) {
+  const community = await requireAdminOf(slug);
+  const user = await requireUser();
+  if (userId === user.id) {
+    throw new Error("Admins cannot remove themselves from the admin page.");
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await lockCommunity(tx, community.id);
+
+    const membership = await tx.membership.findUnique({
+      where: { userId_communityId: { userId, communityId: community.id } },
+      select: { role: true },
+    });
+    if (!membership) return;
+
+    // Looks unneeded - the caller is an admin and cannot remove themselves - but
+    // the caller was checked before the lock. If another admin demoted them in
+    // the meantime, the person being removed may be the last admin left.
+    if (membership.role === "admin") {
+      const admins = await tx.membership.count({
+        where: { communityId: community.id, role: "admin" },
+      });
+      if (admins <= 1) return;
+    }
+
+    await tx.membership.delete({
+      where: { userId_communityId: { userId, communityId: community.id } },
+    });
+  });
+
   revalidatePath(`/community/${community.slug}/admin`);
 }

@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { Check, Shield, User, X } from "lucide-react";
+import { Check, Shield, User, UserMinus, X } from "lucide-react";
 import QRCode from "qrcode";
 import { requireUser } from "@/lib/auth";
 import { getCommunityForAdmin, getMembers } from "@/lib/community";
@@ -9,9 +9,11 @@ import { formatNoticeDate } from "@/lib/notices";
 import {
   approveJoinRequest,
   rejectJoinRequest,
+  removeMember,
   rotateJoinCode,
   setMemberRole,
 } from "./actions";
+import ConfirmButton from "./ConfirmButton";
 import JoinLinkPanel from "./JoinLinkPanel";
 
 export const metadata = { title: "Admin - Koto" };
@@ -176,32 +178,48 @@ export default async function AdminPage({
                     </p>
                   </div>
                 </div>
-                {isLastAdmin ? (
-                  <p className="shrink-0 text-sm text-muted-foreground">
-                    Make someone else an admin before stepping down.
-                  </p>
-                ) : (
-                  <form
-                    action={setMemberRole.bind(
-                      null,
-                      community.slug,
-                      member.user.id,
-                      isAdmin ? "member" : "admin",
-                    )}
-                    className="shrink-0"
-                  >
-                    <button
-                      type="submit"
-                      className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-muted"
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  {isLastAdmin ? (
+                    <p className="text-sm text-muted-foreground">
+                      Make someone else an admin before stepping down.
+                    </p>
+                  ) : (
+                    <form
+                      action={setMemberRole.bind(
+                        null,
+                        community.slug,
+                        member.user.id,
+                        isAdmin ? "member" : "admin",
+                      )}
                     >
-                      {isAdmin
-                        ? isYou
-                          ? "Step down as admin"
-                          : "Make member"
-                        : "Make admin"}
-                    </button>
-                  </form>
-                )}
+                      <button
+                        type="submit"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-muted"
+                      >
+                        {isAdmin
+                          ? isYou
+                            ? "Step down as admin"
+                            : "Make member"
+                          : "Make admin"}
+                      </button>
+                    </form>
+                  )}
+                  {/* Not on your own row: leaving is for every member, not an
+                      admin-page action - see removeMember. */}
+                  {!isYou && (
+                    <ConfirmButton
+                      action={removeMember.bind(
+                        null,
+                        community.slug,
+                        member.user.id,
+                      )}
+                      question={`Remove ${member.user.name} from ${community.name}? They lose access straight away. Their notices stay on the board.`}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium text-destructive hover:bg-muted"
+                    >
+                      <UserMinus className="h-4 w-4" /> Remove
+                    </ConfirmButton>
+                  )}
+                </div>
               </li>
             );
           })}
